@@ -5,10 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Magasin – Events (prototype v0.1)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/Graphik-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Graphik-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/BerlingNovaDisplayPro.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Magasins egne webfonte (hentet fra magasin.dk) – samme filer og vægte som på sitet.
+   Eget familienavn, så alle ser præcis de samme filer, uanset hvilke fonte der er installeret lokalt.
+   Kun Regular (400) og Medium (500) findes – fed tekst (600/700) bruger Medium, som på magasin.dk. */
+@font-face{font-family:"Magasin Graphik";src:url("assets/fonts/Graphik-Regular.woff2") format("woff2");font-weight:100 450;font-style:normal;font-display:swap}
+@font-face{font-family:"Magasin Graphik";src:url("assets/fonts/Graphik-Medium.woff2") format("woff2");font-weight:451 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Magasin Berling";src:url("assets/fonts/BerlingNovaDisplayPro.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 /* ===== Tokens fra Magasin Design System (Figma: Style Guide - Look and Feel) ===== */
 :root{
   --green:#507f70; --green-700:#3d716c; --green-100:#eefaf2; --green-200:#def5e7; --green-300:#c3e1d2;
@@ -18,8 +24,8 @@
   --pink:#f08aa0; --pink-100:#feece8; --pink-dark:#dc4067;
   --b900:#14080c; --b700:#1e1516; --b500:#2a2a2a; --b450:#555; --b400:#7f7f7f; --b300:#bfbfbf; --b200:#e9e9e9; --b100:#f4f4f4; --b50:#fbfbfb; --b0:#fff;
   --r1:2px; --r2:4px; --r3:6px; --r4:8px; --r8:16px; --pill:1000px;
-  --serif:'Berling Nova Display Pro','Berling Nova Display','EB Garamond',Georgia,serif;
-  --sans:'Graphik','Inter',system-ui,-apple-system,sans-serif;
+  --serif:'Magasin Berling',Georgia,serif;
+  --sans:'Magasin Graphik',system-ui,-apple-system,sans-serif;
   --shadow:0 8px 32px rgba(20,8,12,.12);
 }
 *{box-sizing:border-box}
