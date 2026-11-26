@@ -151,13 +151,14 @@ body.notes .annot{display:block}
 .card-body{padding:14px 2px 0;display:flex;flex-direction:column;gap:6px;flex:1}
 .card-body h3{font-size:22px;line-height:1.15;margin:4px 0 2px}
 .card:hover h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
-.meta{display:flex;gap:8px;align-items:center;font-size:14px}
+.meta{display:flex;gap:6px;align-items:center;font-size:14px;line-height:22px}
+.meta svg.i{width:21px;height:21px;flex:none;vertical-align:0}   /* samme som ure-ikonet på eventkortet (.ec-time) */
 .card-foot{margin-top:auto;padding-top:10px}
 .card-boxed{padding:18px;border-radius:var(--r4)}
 .card-boxed .card-body{padding:14px 0 0}
 /* horizontal */
-.card-h{flex-direction:row;padding:16px;gap:20px;border-radius:var(--r4);align-items:stretch}
-.card-h .card-img{width:44%;aspect-ratio:auto;min-height:220px;flex:none}
+.card-h{flex-direction:row;padding:16px;gap:20px;border-radius:var(--r4);align-items:flex-start}
+.card-h .card-img{width:44%;aspect-ratio:307/208;min-height:0;flex:none}   /* samme ratio som eventkortet */
 .card-h .card-body{padding:4px 0}
 /* tiny */
 .tiny{display:flex;gap:16px;align-items:center;background:#fff;border-radius:var(--r4);padding:16px;cursor:pointer}
@@ -298,12 +299,14 @@ html:has(body.open){overflow:hidden}
 .mod-ctrl{display:flex;gap:8px;align-items:center;border:1px dashed #9747ff;background:#f6f0ff;color:#6a2fd1;border-radius:var(--r2);padding:8px 12px;font-size:13px;margin:20px 0 0;flex-wrap:wrap}
 .mod-ctrl button{border:1px solid #c9a7ff;background:#fff;border-radius:var(--pill);padding:4px 12px;font-size:13px;color:#6a2fd1}
 .mod-ctrl button.on{background:#6a2fd1;color:#fff;border-color:#6a2fd1}
-.feat{display:grid;grid-template-columns:1.2fr 1fr;background:#fff;border-radius:var(--r4);overflow:hidden;cursor:pointer}
-.feat .card-img{border-radius:0;aspect-ratio:auto;min-height:380px}
+.feat{display:grid;grid-template-columns:1.2fr 1fr;align-items:start;background:#fff;border-radius:var(--r4);overflow:hidden;cursor:pointer}
+.feat .card-img{border-radius:0;aspect-ratio:307/208;min-height:0}   /* samme ratio som eventkortet */
+.feat .fb{align-self:stretch}
 .feat .fb{padding:40px;display:flex;flex-direction:column;gap:12px;justify-content:center}
 .feat h3{font-size:40px;line-height:1.1}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g3 .ec-img{height:auto;aspect-ratio:307/208}   /* samme ratio som eventkortet i 4-kolonne-griddet – modulet bliver højere i stedet for at billedet beskæres */
 .car{position:relative}
 .track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 60px)/4);gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
 .track>*{scroll-snap-align:start}
@@ -590,6 +593,23 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 .fbtn svg.chev{width:18px;height:18px}
 svg.mstar{width:20px;height:20px}
 .side a.on svg.mstar{background:var(--green-200);border-radius:var(--pill);width:30px;height:22px;padding:1px 5px;margin-left:-6px}
+/* Eventmodul 1 og 2 events: samme kort-indhold som 3/4 events, billedet beholder eventkortets ratio (307:208) */
+.ec-feat{flex-direction:row;background:#fff;border-radius:6px;overflow:hidden}
+.two .ec-img{height:auto;aspect-ratio:307/208}
+.ec-feat .ec-img{height:auto;aspect-ratio:307/208;margin:0;border-radius:0;flex:none;align-self:flex-start}
+.ec-feat .ec-img{width:58%}
+.ec-feat .ec-info{border-radius:0;padding:26px;justify-content:center}
+.ec-feat .ec-info{padding:40px}
+.ec-feat .ec-tt h3{font-size:40px;line-height:1.1}
+/* 1 event (desktop): tekst top-aligned, knap i bunden */
+.ec-feat .ec-info{justify-content:flex-start}
+.ec-feat .ec-tt{flex:1}
+.ec-feat .ec-btn{max-width:320px}
+/* Mobil: 2 events = præcis samme eventkort som ved 3, 4 og flere events */
+@media (max-width:720px){
+  .g3 .ec-img,.two .ec-img{height:150px;aspect-ratio:auto}
+}
+@media (max-width:1100px){.ec-feat{flex-direction:column}.ec-feat .ec-img{width:100%}.ec-feat .ec-info{padding:26px 14px 14px}.ec-feat .ec-tt{flex:none}.ec-feat .ec-tt h3{font-size:28px;line-height:36px}.ec-feat .ec-btn{max-width:none}}
 /* Trigger-mails */
 .mail-grp{display:block;font-size:12px;font-weight:600;padding:14px 0 4px;border-bottom:1px solid var(--b200)}
 .mail-nav button.sub{padding-left:16px}
@@ -636,10 +656,12 @@ svg.mstar{width:20px;height:20px}
   .d-hero{border-radius:12px 12px 0 0}   /* samme ratio (2:1) som på desktop */
   .steps{padding:0 12px 14px}
   .mod-head{flex-direction:column;align-items:flex-start}.mod-head h2{font-size:30px}
-  .feat,.two,.g3{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:85%;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px}
+  .feat,.two,.g3{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:80%;overflow-x:auto;scroll-snap-type:x mandatory;gap:20px;scrollbar-width:none}
+  .two,.g3{margin:0 -16px;padding:0 16px;scroll-padding:0 16px}   /* slideren går helt ud til skærmkanten, første kort flugter med indholdet */
+  .two>*,.g3>*{scroll-snap-align:start}
   .feat{grid-auto-columns:100%;display:flex;flex-direction:column}
-  .feat .card-img{min-height:220px}.feat .fb{padding:20px}.feat h3{font-size:28px}
-  .card-h{flex-direction:column;padding:12px}.card-h .card-img{width:100%;min-height:0;aspect-ratio:16/10}
+  .feat{align-items:stretch}.feat .fb{padding:20px}.feat h3{font-size:28px}
+  .card-h{flex-direction:column;padding:12px}.card-h .card-img{width:100%;min-height:0}
   .track{grid-auto-columns:80%}
   .arrows{display:none}
   .bk{grid-template-columns:96px 1fr}.bk .acts{grid-column:1/-1;flex-direction:row;min-width:0}.bk .acts .btn{flex:1}
@@ -880,34 +902,30 @@ function ctaLabel(ev){
 function toast(msg){const t=document.getElementById('toast');t.innerHTML=I.check+' '+msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
 
 /* ======================= Cards ======================= */
+/* Dato + tidspunkt som på eventkortet – bruges også i eventmodulet (1 og 2 events) og på PDP */
+const whenTxt=ev=>esc(ev.date)+(ev.time&&ev.flow!=='timeslot'&&ev.time!=='I åbningstiden'?', '+esc(ev.time):'');
 /* Eventkort – Figma "Product Card" (node 27734:130013) */
-function card(ev,opts={}){
-  const b=bk(ev.id), booked=active(b);
-  const when=esc(ev.date)+(ev.time&&ev.flow!=='timeslot'&&ev.time!=='I åbningstiden'?', '+esc(ev.time):'');
-  return `<article class="ec" data-action="open" data-id="${ev.id}">
-    <div class="ec-img"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div>
-      <div class="ec-fn">
-        <div class="ec-tags">${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${booked?statusChip(b.status):''}</div>
-      </div>
-    </div>
-    <div class="ec-info">
-      <span class="ec-place">Magasin ${esc(ev.loc)}</span>
+/* Fælles indhold på alle eventkort (badges på billedet + sted, titel, tid, tilmeldingslinje og knap) */
+function ecTags(ev){const b=bk(ev.id);return `<div class="ec-fn"><div class="ec-tags">${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${active(b)?statusChip(b.status):''}</div></div>`}
+function ecBody(ev,opts={}){
+  return `<span class="ec-place">Magasin ${esc(ev.loc)}</span>
       <div class="ec-tt"><h3>${esc(ev.title)}</h3>
-        <span class="ec-time">${I.clock}<span>${when}</span></span>
+        <span class="ec-time">${I.clock}<span>${whenTxt(ev)}</span></span>
         <span class="ec-type">${typeLine(ev)}</span></div>
-      ${opts.noBtn?'':`<button class="ec-btn"><span>${ctaLabel(ev)}</span>${I.arrow}</button>`}
-    </div></article>`;
+      ${opts.noBtn?'':`<button class="ec-btn"><span>${ctaLabel(ev)}</span>${I.arrow}</button>`}`;
 }
-function cardH(ev){
-  return `<article class="card card-h" data-action="open" data-id="${ev.id}">
-    <div class="card-img" ${imgStyle(ev)}>${imgInner(ev)}<div class="card-badges">${memberChip(ev)}${soldChip(ev)}</div></div>
-    <div class="card-body">
-      <div><span class="chip">${esc(ev.loc)}</span></div>
-      <h3 style="font-size:28px">${esc(ev.title)}</h3>
-      <div class="meta">${I.clock}${esc(ev.date)}</div>
-      <p class="small muted" style="margin:4px 0">${esc(ev.desc[0])}</p>
-      <div class="card-foot"><button class="btn btn-dark btn-sm">${ctaLabel(ev)} ${I.arrow}</button></div>
-    </div></article>`;
+function card(ev,opts={}){
+  return `<article class="ec" data-action="open" data-id="${ev.id}">
+    <div class="ec-img"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div>${ecTags(ev)}</div>
+    <div class="ec-info">${ecBody(ev,opts)}</div></article>`;
+}
+/* 2 events: almindeligt eventkort (billede øverst) – to side om side, billedet beholder eventkortets ratio */
+function cardH(ev){return card(ev)}
+/* 1 event: feature-kort – samme info som eventkortet */
+function cardFeat(ev){
+  return `<article class="ec ec-feat" data-action="open" data-id="${ev.id}">
+    <div class="ec-img"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div>${ecTags(ev)}</div>
+    <div class="ec-info">${ecBody(ev)}</div></article>`;
 }
 
 /* ======================= Pages ======================= */
@@ -1188,7 +1206,7 @@ function pageJul(){
   let mod='';
   {
     const k=+n, list=jul.slice(0,k);
-    if(k===1){const e=list[0];mod=`<div class="feat" data-action="open" data-id="${e.id}"><div class="card-img" ${imgStyle(e)}>${imgInner(e)}</div><div class="fb"><div><span class="chip">${esc(e.loc)}</span></div><h3>${esc(e.title)}</h3><div class="meta">${I.clock}${esc(e.date)}</div><p>${esc(e.desc[0])}</p><div><button class="btn btn-dark">${ctaLabel(e)} ${I.arrow}</button></div></div></div>`;}
+    if(k===1) mod=cardFeat(list[0]);
     else if(k===2) mod=`<div class="two">${list.map(cardH).join('')}</div>`;
     else if(k===3) mod=`<div class="g3">${list.map(e=>card(e,{boxed:true})).join('')}</div>`;
     else mod=`<div class="car"><div class="track" id="track">${list.map(e=>card(e,{boxed:true})).join('')}</div></div>`;
@@ -1202,7 +1220,7 @@ function pageJul(){
     ${mod}
     <div class="mod-ctrl"><b>Prototype – eventmodul:</b> vis med
       ${['1','2','3','4','8'].map(v=>`<button class="${S.mod===v?'on':''}" data-action="mod" data-v="${v}">${v+' '+(v==='1'?'event':'events')}</button>`).join('')}
-      <span>· 1 = feature, 2 = horisontale kort, 3 = grid, 4+ = karrusel. Mobil: altid slider.</span></div>
+      <span>· 1 = feature (billede + tekst side om side på desktop), 2–3 = kort i grid, 4+ = karrusel. Mobil: altid slider.</span></div>
     <div class="annot"><b>Note:</b> Klik på et event åbner draweren direkte på siden, så kunden kan tilmelde sig uden at forlade kunderejsen (aftalt på mødet).</div>
   </div></section>
   <div class="container"><div class="placeholder">Page Designer-indhold</div></div>`;
@@ -1224,7 +1242,7 @@ function pdpEvent(){
       <div class="card-img zoom-frame"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div></div>
       <div class="tb"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">${esc(ev.loc)}</span>${active(b)?statusChip(b.status):memberChip(ev)}</div>
         <h4>${esc(ev.title)}</h4>
-        <div class="meta small">${I.clock}${esc(ev.date)}${ev.flow!=='timeslot'&&ev.time?', '+esc(ev.time):''}</div>
+        <div class="meta small">${I.clock}<span>${whenTxt(ev)}</span></div>
         ${sub}</div>
       <button class="btn-sq" aria-label="Se event">${I.arrow}</button></div></div>`;
 }
