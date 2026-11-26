@@ -135,7 +135,7 @@ body{padding-top:var(--header-height,120px)}
 .field-row{display:grid;grid-template-columns:120px 1fr;gap:8px}
 .form-grid{display:grid;gap:8px}
 .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
-.check input{width:20px;height:20px;accent-color:var(--green);margin:0;flex:none}
+.check input{margin:0;flex:none}
 .divider{height:1px;background:var(--b200);margin:20px 0}
 .annot{display:none;border:1px dashed #9747ff;color:#6a2fd1;background:#f6f0ff;border-radius:var(--r2);padding:8px 10px;font-size:12px;margin:10px 0}
 body.notes .annot{display:block}
@@ -263,7 +263,7 @@ html:has(body.open){overflow:hidden}
 .pay{display:grid;gap:8px}
 .payopt{display:flex;align-items:center;gap:12px;border:1px solid var(--b300);border-radius:var(--r2);padding:12px 14px;cursor:pointer}
 .payopt.on{border-color:var(--b700);box-shadow:0 0 0 1px var(--b700)}
-.payopt input{accent-color:var(--b700);width:18px;height:18px}
+.payopt input{margin:0;flex:none}
 .payopt .logos{margin-left:auto;display:flex;gap:4px}
 .payopt .logos span{font-size:10px;border:1px solid var(--b300);border-radius:3px;padding:2px 5px;font-weight:600}
 .cardbox{background:var(--b50);border:1px solid var(--b200);border-radius:var(--r4);padding:14px;margin:-2px 0 4px}
@@ -297,6 +297,7 @@ html:has(body.open){overflow:hidden}
 .mod-head h2{font-size:40px}
 .mod-head p{margin:8px 0 0}
 .mod-ctrl{display:flex;gap:8px;align-items:center;border:1px dashed #9747ff;background:#f6f0ff;color:#6a2fd1;border-radius:var(--r2);padding:8px 12px;font-size:13px;margin:20px 0 0;flex-wrap:wrap}
+.mod-ctrl-top{margin:24px 0 32px}   /* prototype-vælgeren står i sektionen over eventmodulet */
 .mod-ctrl button{border:1px solid #c9a7ff;background:#fff;border-radius:var(--pill);padding:4px 12px;font-size:13px;color:#6a2fd1}
 .mod-ctrl button.on{background:#6a2fd1;color:#fff;border-color:#6a2fd1}
 .feat{display:grid;grid-template-columns:1.2fr 1fr;align-items:start;background:#fff;border-radius:var(--r4);overflow:hidden;cursor:pointer}
@@ -306,7 +307,6 @@ html:has(body.open){overflow:hidden}
 .feat h3{font-size:40px;line-height:1.1}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.g3 .ec-img{height:auto;aspect-ratio:307/208}   /* samme ratio som eventkortet i 4-kolonne-griddet – modulet bliver højere i stedet for at billedet beskæres */
 .car{position:relative}
 .track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 60px)/4);gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
 .track>*{scroll-snap-align:start}
@@ -376,9 +376,9 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 @media (max-width:720px){.fsticky{margin:0 -16px;padding:8px 16px}}
 .fbtn{flex:none;height:56px;border:1px solid var(--b700);border-radius:4px;padding:0 18px;font-size:14px;font-weight:400;line-height:1;background:#fff;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
 .fbtn:hover{background:var(--b50)}
-.cb{width:20px;height:20px;flex:none;border:1px solid var(--b450);border-radius:4px;display:grid;place-items:center;background:#fff;color:#fff}
-.cb.on{background:var(--b700);border-color:var(--b700)}
-.cb svg.i{width:13px;height:13px;vertical-align:0}
+.cb{width:24px;height:24px;flex:none;border:1px solid #7f7f7f;border-radius:8px;display:grid;place-items:center;background:#fbfbfb;color:#fff}
+.cb.on::before{content:"";grid-area:1/1;width:20px;height:20px;border-radius:6px;background:#507f70}
+span.cb svg.i{grid-area:1/1;position:relative;width:16px;height:16px;vertical-align:0}
 .achips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .achip{background:#f0f0f0;border:0;border-radius:6px;padding:6px 10px;font-size:14px;color:var(--b450);display:inline-flex;gap:6px;align-items:center}
 .achip svg.i{width:12px;height:12px;vertical-align:0}
@@ -394,7 +394,8 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 
 /* ===== Eventkort (Figma Product Card 27734:130013) ===== */
 .ec{display:flex;flex-direction:column;cursor:pointer;min-width:0}
-.ec-img{position:relative;z-index:2;height:208px;margin-bottom:-10px;border-radius:6px;overflow:hidden;background:#f4f4f4 center/cover no-repeat}
+/* Fast billedratio 307/208 i alle responsive trin (Figma Product Card) – billedet skaleres, beskæres ikke anderledes */
+.ec-img{position:relative;z-index:2;height:auto;aspect-ratio:307/208;margin-bottom:-10px;border-radius:6px;overflow:hidden;background:#f4f4f4 center/cover no-repeat}
 .ec-img .ph{position:absolute;inset:0}
 /* Hover-zoom som mammut.com "Shop by category": scale(1.027), 1s easeOutExpo, kun billedet */
 .zoom-media{position:absolute;inset:0;background:#f4f4f4 center/cover no-repeat;transition:transform 1s cubic-bezier(.19,1,.22,1);will-change:transform}
@@ -404,8 +405,14 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 @media (prefers-reduced-motion:reduce){.zoom-media{transition:none}.ec:hover .zoom-media,.tiny:hover .zoom-media{transform:none}}
 .ec-fn{position:relative;display:flex;gap:6px;align-items:flex-start;padding:14px}
 .ec-tags{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
-.ec-callout{display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;font-size:12px;line-height:12px;padding:8px 6px;border-radius:4px;white-space:nowrap}
-.ec-callout svg.i{width:12px;height:12px;vertical-align:0}
+.ec-callout{display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;font-size:12px;line-height:12px;padding:10px 6px;border-radius:4px;white-space:nowrap}
+/* Figma Call out (node 4204:22594): ikon før tekst, hvidt – Large 20px/gap 6/padding 10·6, Medium 16px/gap 4/padding 7, Small 13px/gap 2/padding 8 og 10px tekst */
+.ec-callout>svg.i{width:20px;height:20px;flex:none;vertical-align:0;margin:-4px 0}   /* negativ margin: ikonet øger ikke højden – call-out er lige høj med og uden ikon */
+.ec-callout .gstars svg.i{width:12px;height:12px}
+.ec-callout.is-confirmed{background:var(--green);color:#fff}
+.ec-callout.is-waitlist{background:#f4efe7;color:#754d2c}
+@media (max-width:1100px){.ec-callout{gap:4px;padding:7px}.ec-callout>svg.i{width:16px;height:16px;margin:-2px 0}}
+@media (max-width:720px){.ec-callout{gap:2px;padding:8px;font-size:10px;line-height:10px}.ec-callout>svg.i{width:13px;height:13px;margin:-1.5px 0}.ec-callout .gstars{margin:-1px 0}}
 .ec-info{position:relative;z-index:1;flex:1;background:#fff;border-radius:0 0 6px 6px;padding:26px 14px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
 .ec-place{background:#e9e9e9;color:#14080c;font-size:12px;line-height:12px;padding:8px 6px;border-radius:4px;white-space:nowrap}
 /* Kategori-badge: Figma Chips → System/Message/Info (surface #f4efe7, tekst #754d2c) – adskiller sig fra lokationsbadgen */
@@ -426,7 +433,6 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 .ec-btn svg.i{width:24px;height:24px}
 .mod .ec-info{border-radius:0 0 6px 6px}
 @media (max-width:720px){
-  .ec-img{height:150px}
   .ec-info{padding:22px 10px 14px;gap:14px}
   .ec-tt h3{font-size:22px;line-height:28px}
   .ec-time,.ec-type{font-size:13px;line-height:19px}.ec-time svg.i{width:18px;height:18px}
@@ -454,7 +460,7 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
 .ec-callout.is-open,.chip.is-open{background:var(--green);color:#fff}
 .ec-callout.is-sold,.chip.is-sold{background:var(--danger-700);color:#fff}   /* Figma: System/Danger 700 */
 .remind{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--b200);border-radius:var(--r4);padding:14px 16px;margin:0 0 18px;font-size:14px;cursor:pointer}
-.remind input{width:20px;height:20px;accent-color:var(--green);margin:0;flex:none}
+.remind input{margin:0;flex:none}
 .remind>svg.i{width:20px;height:20px;flex:none}
 .remind b{display:block;font-weight:600;margin-bottom:2px}
 .remind.is-guest{cursor:default;background:var(--beige-300)}
@@ -571,6 +577,46 @@ html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-heig
   .drawer .d-title{font-size:24px;line-height:31px}
   .drawer .d-foot .btn,.drawer .d-foot .apay-btn{height:48px}
 }
+/* Figma Drawer (node 2189:35485) – bredde, header, luk/tilbage-knap, body og footer pr. skærmstørrelse
+   Large (>1100): bredde 500 · header-padding 22/26 · titel 28/43 · luk-knap 38 · body-padding 26 (bund 40) · footer-padding 26, knap-afstand 10
+   Medium (721–1100): bredde 500 · header 16/19 · titel 24/36 · luk-knap 32 · body 19 (bund 31) · footer 19, afstand 7
+   Small (≤720): fuld bredde · header 12/14 · titel 20/31 · luk-knap 26 · body 14 (bund 22) · footer 14, afstand 4
+   Luk: rund, #1e1516 med lyst ikon. Tilbage/del: rund, hvid med #e9e9e9-kant. Ikon 18px i alle størrelser. Footer uden skillelinje. */
+.drawer{width:500px}
+.drawer .icbtn{width:38px;height:38px;flex:none;background:#fff;border:1px solid #e9e9e9;color:#180d10}
+.drawer .icbtn.dark{background:#1e1516;border-color:#1e1516;color:#e9e9e9}
+.drawer .icbtn svg.i{width:18px;height:18px}
+.drawer .d-head{padding:22px 26px;gap:18px}
+.drawer .d-head h2{font-size:28px;line-height:43px}
+.drawer .d-close{top:22px;right:26px}
+.drawer .d-share{top:22px;right:82px}
+.drawer .d-body{padding-bottom:40px}
+.drawer .d-body.withhero{padding-bottom:26px}
+.drawer .d-foot{padding:26px;gap:10px;border-top:0}
+.drawer .steps{padding-left:26px;padding-right:26px}
+@media (max-width:1100px){
+  .drawer .icbtn{width:32px;height:32px}
+  .drawer .d-head{padding:16px 19px;gap:13px}
+  .drawer .d-head h2{font-size:24px;line-height:36px}
+  .drawer .d-close{top:16px;right:19px}
+  .drawer .d-share{top:16px;right:64px}
+  .drawer .d-body{padding-bottom:31px}
+  .drawer .d-body.withhero{padding-bottom:19px}
+  .drawer .d-foot{padding:19px;gap:7px}
+  .drawer .steps{padding-left:19px;padding-right:19px}
+}
+@media (max-width:720px){
+  .drawer{width:100%}
+  .drawer .icbtn{width:26px;height:26px}
+  .drawer .d-head{padding:12px 14px;gap:10px}
+  .drawer .d-head h2{font-size:20px;line-height:31px}
+  .drawer .d-close{top:12px;right:14px}
+  .drawer .d-share{top:12px;right:50px}
+  .drawer .d-body{padding-bottom:22px}
+  .drawer .d-body.withhero{padding-bottom:14px}
+  .drawer .d-foot{padding:14px;gap:4px}
+  .drawer .steps{padding-left:14px;padding-right:14px}
+}
 /* Accordions (FAQ) – Figma "Drawer module / Accordions": Large padding/radius 18/10 · Medium 13/7 · Small 10/4 */
 .faq-t{margin-top:24px!important}
 .faq{display:grid;gap:14px;margin-bottom:8px}
@@ -595,8 +641,7 @@ svg.mstar{width:20px;height:20px}
 .side a.on svg.mstar{background:var(--green-200);border-radius:var(--pill);width:30px;height:22px;padding:1px 5px;margin-left:-6px}
 /* Eventmodul 1 og 2 events: samme kort-indhold som 3/4 events, billedet beholder eventkortets ratio (307:208) */
 .ec-feat{flex-direction:row;background:#fff;border-radius:6px;overflow:hidden}
-.two .ec-img{height:auto;aspect-ratio:307/208}
-.ec-feat .ec-img{height:auto;aspect-ratio:307/208;margin:0;border-radius:0;flex:none;align-self:flex-start}
+.ec-feat .ec-img{margin:0;border-radius:0;flex:none;align-self:flex-start}
 .ec-feat .ec-img{width:58%}
 .ec-feat .ec-info{border-radius:0;padding:26px;justify-content:center}
 .ec-feat .ec-info{padding:40px}
@@ -606,10 +651,16 @@ svg.mstar{width:20px;height:20px}
 .ec-feat .ec-tt{flex:1}
 .ec-feat .ec-btn{max-width:320px}
 /* Mobil: 2 events = præcis samme eventkort som ved 3, 4 og flere events */
-@media (max-width:720px){
-  .g3 .ec-img,.two .ec-img{height:150px;aspect-ratio:auto}
-}
 @media (max-width:1100px){.ec-feat{flex-direction:column}.ec-feat .ec-img{width:100%}.ec-feat .ec-info{padding:26px 14px 14px}.ec-feat .ec-tt{flex:none}.ec-feat .ec-tt h3{font-size:28px;line-height:36px}.ec-feat .ec-btn{max-width:none}}
+/* Figma: Checkbox & Radio (Controls, node 4279:28525) – 24px, kant #7f7f7f, flade #fbfbfb, radius 8.
+   Valgt: grøn (#507f70) inderflade 20px (radius 6) med hvidt Check Done-ikon 16px. Radio: rund, grøn prik. */
+.check input[type=checkbox],.remind input[type=checkbox],.payopt input[type=radio]{-webkit-appearance:none;appearance:none;width:24px;height:24px;border:1px solid #7f7f7f;background:#fbfbfb;display:inline-grid;place-items:center;cursor:pointer;flex:none;margin:0}
+.check input[type=checkbox],.remind input[type=checkbox]{border-radius:8px}
+.check input[type=checkbox]:checked::after,.remind input[type=checkbox]:checked::after{content:"";width:20px;height:20px;border-radius:6px;background:#507f70 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' fill-rule='evenodd' d='M18.5883 8.22179L9.5672 17.2429L4.92572 12.6014L5.63283 11.8943L9.5672 15.8286L17.8812 7.51468L18.5883 8.22179Z'/%3E%3C/svg%3E") center/16px no-repeat}
+.payopt input[type=radio]{border-radius:50%}
+.payopt input[type=radio]:checked::after{content:"";width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,#fff 0 3.5px,#507f70 4px)}
+.check input:focus-visible,.remind input:focus-visible,.payopt input:focus-visible{outline:2px solid #507f70;outline-offset:2px}
+.check input:disabled{opacity:.5;cursor:not-allowed}
 /* Trigger-mails */
 .mail-grp{display:block;font-size:12px;font-weight:600;padding:14px 0 4px;border-bottom:1px solid var(--b200)}
 .mail-nav button.sub{padding-left:16px}
@@ -860,6 +911,8 @@ const STATUS={
   cancelled:{l:'Afmeldt',c:'chip-neutral',i:''},
 };
 const statusChip=s=>`<span class="chip ${STATUS[s].c}">${STATUS[s].i}${STATUS[s].l}</span>`;
+/* På eventkortet: Figma Call out med Check Done-ikon (som "Bestseller") */
+const statusCallout=s=>`<span class="ec-callout is-${s}">${STATUS[s].i}${STATUS[s].l}</span>`;
 /* Goodie-label: lås-label "Kun Goodie-medlemmer" på events der kræver Goodie (vises kun for gæster) */
 const LOW=10;   // "Kun X pladser tilbage" vises ved de sidste 10 pladser (konfigurerbart)
 const stars=n=>`<span class="gstars">${I.star.repeat(n)}</span>`;
@@ -906,7 +959,7 @@ function toast(msg){const t=document.getElementById('toast');t.innerHTML=I.check
 const whenTxt=ev=>esc(ev.date)+(ev.time&&ev.flow!=='timeslot'&&ev.time!=='I åbningstiden'?', '+esc(ev.time):'');
 /* Eventkort – Figma "Product Card" (node 27734:130013) */
 /* Fælles indhold på alle eventkort (badges på billedet + sted, titel, tid, tilmeldingslinje og knap) */
-function ecTags(ev){const b=bk(ev.id);return `<div class="ec-fn"><div class="ec-tags">${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${active(b)?statusChip(b.status):''}</div></div>`}
+function ecTags(ev){const b=bk(ev.id);return `<div class="ec-fn"><div class="ec-tags">${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${active(b)?statusCallout(b.status):''}</div></div>`}
 function ecBody(ev,opts={}){
   return `<span class="ec-place">Magasin ${esc(ev.loc)}</span>
       <div class="ec-tt"><h3>${esc(ev.title)}</h3>
@@ -1213,14 +1266,14 @@ function pageJul(){
   }
   const many=+n>=4;
   return `<section class="hero"><div class="container"><h1>Jul i Magasin</h1><p>Find gaverne, pynten og julestemningen – og oplev årets juleevents i vores varehuse.</p></div></section>
-  <div class="container"><div class="placeholder">Page Designer-indhold (fx M23 Product Carousel)</div></div>
+  <div class="container"><div class="placeholder">Page Designer-indhold (fx M23 Product Carousel)</div>
+    <div class="mod-ctrl mod-ctrl-top"><b>Prototype – eventmodul:</b> vis med
+      ${['1','2','3','4','8'].map(v=>`<button class="${S.mod===v?'on':''}" data-action="mod" data-v="${v}">${v+' '+(v==='1'?'event':'events')}</button>`).join('')}
+      <span>· 1 = feature (billede + tekst side om side på desktop), 2–3 = kort i grid, 4+ = karrusel. Mobil: altid slider.</span></div></div>
   <section class="mod"><div class="container">
     <div class="mod-head"><div><h2>Juleevents i Magasin</h2><p>Workshops, smagninger og hygge for hele familien.</p></div>
       <div style="display:flex;gap:16px;align-items:center"><a class="link" href="#/events">Se alle events</a>${many?`<div class="arrows" id="carArrows"><button class="arr-btn" data-action="scroll" data-v="-1" aria-label="Forrige">${I.back}</button><button class="arr-btn" data-action="scroll" data-v="1" aria-label="Næste">${I.next}</button></div>`:''}</div></div>
     ${mod}
-    <div class="mod-ctrl"><b>Prototype – eventmodul:</b> vis med
-      ${['1','2','3','4','8'].map(v=>`<button class="${S.mod===v?'on':''}" data-action="mod" data-v="${v}">${v+' '+(v==='1'?'event':'events')}</button>`).join('')}
-      <span>· 1 = feature (billede + tekst side om side på desktop), 2–3 = kort i grid, 4+ = karrusel. Mobil: altid slider.</span></div>
     <div class="annot"><b>Note:</b> Klik på et event åbner draweren direkte på siden, så kunden kan tilmelde sig uden at forlade kunderejsen (aftalt på mødet).</div>
   </div></section>
   <div class="container"><div class="placeholder">Page Designer-indhold</div></div>`;
