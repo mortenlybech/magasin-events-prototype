@@ -1887,7 +1887,7 @@ function render(){
     ?`<a class="hdr-btn" href="#/mypage" title="MyMagasin">${I.user}<span>Hej ${USER.first}</span></a>`
     :`<button class="hdr-btn" data-action="login" title="Log ind">${I.user}</button>`)+`<span class="hdr-btn">${I.heart}</span><span class="hdr-btn">${I.bag}</span>`;
   document.body.classList.toggle('notes',S.notes);
-  document.body.classList.toggle('cards-stroke',S.cardStroke===true);
+  document.body.classList.toggle('cards-stroke',S.cardStroke!==false);   /* "Med kant" er standard */
   updArrows();
   renderProto();
   /* Deep link: #/events?event=ID åbner eventoversigten med eventets sidepanel foldet ud */
@@ -1916,7 +1916,7 @@ function renderProto(){
       <a href="#/pdp">4 · PDP med event under buy box ${r==='pdp'?'●':''}</a>
       <a href="#/mails">5 · Trigger-mails ${r==='mails'?'●':''}</a>
       <a href="${evHash(6)}">6 · Delt event-link ${r.startsWith('event/')||(r==='events'&&evParam())?'●':''}</a></div>
-    <h5>Eventkort</h5><div class="seg"><button class="${S.cardStroke?'':'on'}" data-action="cardstroke" data-v="0">Uden kant</button><button class="${S.cardStroke?'on':''}" data-action="cardstroke" data-v="1">Med kant (stroke)</button></div>
+    <h5>Eventkort</h5><div class="seg"><button class="${S.cardStroke===false?'on':''}" data-action="cardstroke" data-v="0">Uden kant</button><button class="${S.cardStroke!==false?'on':''}" data-action="cardstroke" data-v="1">Med kant (stroke)</button></div>
     <h5>Delingslink åbner</h5><div class="seg"><button class="${shareMode()==='drawer'?'on':''}" data-action="sharemode" data-v="drawer">Oversigt + sidepanel</button><button class="${shareMode()==='page'?'on':''}" data-action="sharemode" data-v="page">Landingsside</button></div>
     <h5>Kunde</h5><div class="seg"><button class="${S.loggedIn?'':'on'}" data-action="as" data-v="0">Gæst</button><button class="${S.loggedIn?'on':''}" data-action="as" data-v="1">Goodie-medlem</button></div>
     ${S.loggedIn?`<h5>Goodie-niveau</h5><div class="seg">${[1,2,3].map(n=>`<button class="${S.stars===n?'on':''}" data-action="stars" data-v="${n}">${n} ${n>1?'stjerner':'stjerne'}</button>`).join('')}</div>`:''}
