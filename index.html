@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Magasin – Events (prototype v0.1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens fra Magasin Design System (Figma: Style Guide - Look and Feel) ===== */
+:root{
+  --green:#507f70; --green-700:#3d716c; --green-100:#eefaf2; --green-200:#def5e7; --green-300:#c3e1d2;
+  --beige:#f4efe7; --beige-300:#fbf9f3; --beige-700:#af9474;
+  --yellow:#fedb00; --warn-100:#fefacb; --warn-900:#796200;
+  --red:#f83821; --danger-100:#ffe6d6; --danger-700:#b71926;
+  --pink:#f08aa0; --pink-100:#feece8; --pink-dark:#dc4067;
+  --b900:#14080c; --b700:#1e1516; --b500:#2a2a2a; --b450:#555; --b400:#7f7f7f; --b300:#bfbfbf; --b200:#e9e9e9; --b100:#f4f4f4; --b50:#fbfbfb; --b0:#fff;
+  --r1:2px; --r2:4px; --r3:6px; --r4:8px; --r8:16px; --pill:1000px;
+  --serif:'Berling Nova Display Pro','Berling Nova Display','EB Garamond',Georgia,serif;
+  --sans:'Graphik','Inter',system-ui,-apple-system,sans-serif;
+  --shadow:0 8px 32px rgba(20,8,12,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--sans);font-size:15px;line-height:1.45;color:var(--b700);background:var(--b0);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+h1,h2,h3,.serif{font-family:var(--serif);font-weight:400;letter-spacing:-.01em;margin:0}
+.container{max-width:1360px;margin:0 auto;padding:0 32px}
+.muted{color:var(--b450)}
+.small{font-size:13px}
+.hidden{display:none!important}
+svg.i{width:16px;height:16px;flex:none;vertical-align:-3px}
+
+/* ===== Header ===== */
+/* Header – målt på www.magasin.dk: callout 40px sort, hovedrække 80px, logo 80x30, nav 12px, søgefelt 240x36 r6 */
+.hdr{background:#fff;position:fixed;left:0;right:0;top:0;z-index:20;border-bottom:1px solid var(--b200);transition:transform .2s ease-in-out}
+/* Som magasin.dk: [data-scrolldir="down"] .is-scrolled-header .b-header → skjult; scroll op → vises igen */
+html[data-scrolldir="down"] body.is-scrolled-header .hdr{transform:translateY(-100%)}
+body{padding-top:var(--header-height,120px)}
+.callout{height:40px;background:#000;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:space-between;padding:0 26px}
+.callout-l{display:flex;gap:18px;align-items:center}
+.callout-l b{font-weight:500;letter-spacing:.02em;margin-right:6px}
+.pause{font-size:9px;letter-spacing:-1px;opacity:.8}
+.callout-r{display:flex;gap:24px}
+.callout-r a{text-decoration:none;cursor:pointer}
+.callout-r a:hover,.callout-r a.active{text-decoration:underline;text-underline-offset:3px}
+.hdr-main{height:80px;display:flex;align-items:center;padding:0 26px;gap:40px}
+.burger{display:none;border:0;background:none;padding:0}
+.logo{display:block;width:80px;height:30px;flex:none}
+.logo svg{display:block;width:80px;height:30px}
+.nav{display:flex;gap:20px;font-size:12px;color:var(--b900);flex:1;overflow-x:auto;scrollbar-width:none}
+.nav a{text-decoration:none;white-space:nowrap;cursor:pointer}
+.nav a:hover{text-decoration:underline;text-underline-offset:4px}
+.hdr-search{width:240px;height:36px;border:1px solid rgba(0,0,0,.9);border-radius:6px;padding:0 10px;display:flex;gap:8px;align-items:center;font-size:12px;color:var(--b450);flex:none}
+.hdr-search .cam{margin-left:auto;color:var(--b700)}
+.hdr-actions{display:flex;gap:4px;align-items:center;flex:none}
+.hdr-btn{display:flex;gap:6px;align-items:center;border:0;background:none;padding:6px;border-radius:var(--r2);font-size:12px;text-decoration:none}
+.hdr-btn svg.i{width:20px;height:20px}
+.hdr-btn:hover{background:var(--b100)}
+
+/* ===== Generic UI ===== */
+/* Knap = Figma "Button" (Magasin DS) · Large 48px / Medium 40px · Graphik Regular 14px · ikon 24px (Large) / 18px (Medium) · gap 18px · radius 4px */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:18px;height:48px;padding:0 14px;border-radius:var(--r2);border:1px solid var(--b700);background:transparent;color:var(--b700);font:400 14px/14px var(--sans);letter-spacing:0;text-decoration:none;white-space:nowrap;transition:background .15s}
+.btn svg.i{width:24px;height:24px;vertical-align:0}
+.btn>svg.i:first-child{order:2}   /* Ikon står altid til højre for teksten (Figma Button) */
+.btn:has(>svg.i){justify-content:space-between;padding:0 18px}   /* Med ikon: tekst til venstre, ikon i højre side – som eventkortets knap */
+.btn:hover{background:var(--b100)}
+.btn-dark{background:var(--b700);color:var(--b200)}
+.btn-dark:hover{background:var(--b500)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-700)}
+.btn-block{width:100%}
+.btn-sm{height:40px;padding:0 10px}
+.btn-sm svg.i{width:18px;height:18px}
+.btn[disabled]{background:var(--b200);border-color:var(--b200);color:var(--b400);cursor:not-allowed}
+.btn-sq{width:40px;height:40px;padding:0;background:var(--b700);color:#fff;border:0;border-radius:var(--r2)}
+.btn-sq svg.i{width:18px;height:18px;vertical-align:0}
+.link{background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;font-size:14px}
+.link-green{color:var(--green)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 8px;border-radius:var(--r1);background:var(--beige);color:var(--b700);white-space:nowrap}
+.chip-dark{background:rgba(30,21,22,.85);color:#fff}
+.l-short{display:none}
+.gstars{display:inline-flex;gap:1px;align-items:center;margin:0}.gstars svg.i{width:11px;height:11px;vertical-align:0}
+.chip .gstars svg.i{width:12px;height:12px}
+.lvl-box{background:var(--beige);border-radius:var(--r4);padding:18px;margin:18px 0}
+.lvl-box h4{display:flex;gap:8px;align-items:center;margin:0 0 6px}
+.btn-danger{background:var(--danger-700);border-color:var(--danger-700);color:#fff}
+.btn-danger:hover{background:#951420}
+.btn-danger:disabled,.btn-green:disabled{opacity:.45}
+@media (max-width:720px){.card .l-long{display:none}.card .l-short{display:inline}}
+.chip-green{background:var(--green);color:#fff}
+.chip-success{background:var(--green-200);color:#17474b}
+.chip-warn{background:var(--warn-100);color:var(--warn-900)}
+.chip-danger{background:var(--danger-100);color:var(--danger-700)}
+.chip-info{background:var(--beige);color:#754d2c}
+.chip-neutral{background:var(--b200);color:var(--b450)}
+.chip svg.i{width:12px;height:12px;vertical-align:0}
+.fchip{border:1px solid var(--b300);background:#fff;border-radius:var(--pill);padding:7px 14px;font-size:14px;white-space:nowrap}
+.fchip:hover{border-color:var(--b700)}
+.fchip.on{background:var(--b700);border-color:var(--b700);color:#fff}
+.ftoggle .count{margin-left:0}
+.ftoggle{display:inline-flex;align-items:center;gap:8px;flex:none;height:52px;border-radius:var(--r2);padding:0 16px;font-size:15px}
+.ftoggle .box{width:18px;height:18px;border:1px solid var(--b450);border-radius:3px;display:grid;place-items:center;background:#fff;color:var(--b700)}
+.ftoggle .box svg.i{width:12px;height:12px;vertical-align:0}
+.ftoggle.on{background:#fff;color:var(--b700);border-color:var(--b700);box-shadow:0 0 0 1px var(--b700)}
+.ftoggle.on .box{background:var(--b700);border-color:var(--b700);color:#fff}
+.tabs{display:flex;gap:28px;border-bottom:1px solid var(--b200);margin-bottom:24px}
+.tab{background:none;border:0;padding:12px 0;font-size:15px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--b450)}
+.tab.on{color:var(--b700);border-color:var(--b700)}
+.count{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:var(--b700);color:#fff;font-size:11px;text-align:center;margin-left:6px;padding:0 6px}
+/* Figma: Toasts, Floating = False (node 134:4845) – størrelser pr. device (Demo node 4523:50974):
+   Large (>1100px): padding/gap 14 · titel 14/14 · tekst 14/22 · luft titel→tekst 10
+   Medium (721–1100px): padding/gap 10 · titel 14/14 · tekst 14/21 · luft 7
+   Small (≤720px): padding/gap 8 · titel 12/12 · tekst 12/18 · luft 4 – ikon altid 24px */
+.banner{display:flex;gap:14px;padding:14px;border-radius:0;font-size:14px;line-height:22px;align-items:flex-start;background:var(--b100);color:var(--b900)}
+.banner>svg.i{width:24px;height:24px;flex:none;vertical-align:0}
+.banner>div{flex:1;min-width:0}
+.banner b{display:block;font-weight:500;font-size:14px;line-height:14px;margin:5px 0 10px}
+.banner .gstars{vertical-align:-1px}
+@media (max-width:1100px){.banner{gap:10px;padding:10px;line-height:21px}.banner b{margin-bottom:7px}}
+@media (max-width:720px){.banner{gap:8px;padding:8px;font-size:12px;line-height:18px}.banner b{font-size:12px;line-height:12px;margin:6px 0 4px}}
+.banner-info{background:var(--b100);color:var(--b900)}              /* Information */
+.banner-success{background:#eefaf2;color:#265b5b}                    /* Success */
+.banner-warn{background:#fefacb;color:#937800}                       /* Warning */
+.banner-extra{background:#f4efe7;color:#754d2c}                      /* Ekstra – bruges til venteliste */
+.banner-danger{background:#ffe6d6;color:#930f25}                     /* Error */
+.field{position:relative;border:1px solid var(--b450);border-radius:var(--r2);background:#fff;padding:6px 12px 6px;min-height:48px}
+.field label{display:block;font-size:11px;color:var(--b450)}
+.field input,.field select{border:0;outline:0;font:inherit;font-size:15px;width:100%;padding:0;background:transparent}
+.field:focus-within{border-color:var(--b700);box-shadow:0 0 0 1px var(--b700)}
+.field.err{border-color:var(--danger-700)}
+.field-row{display:grid;grid-template-columns:120px 1fr;gap:8px}
+.form-grid{display:grid;gap:8px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--green);margin:0;flex:none}
+.divider{height:1px;background:var(--b200);margin:20px 0}
+.annot{display:none;border:1px dashed #9747ff;color:#6a2fd1;background:#f6f0ff;border-radius:var(--r2);padding:8px 10px;font-size:12px;margin:10px 0}
+body.notes .annot{display:block}
+.annot b{font-weight:600}
+
+/* ===== Event cards (Figma M26: Small + Tiny) ===== */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 20px}
+.card{background:#fff;border-radius:var(--r2);display:flex;flex-direction:column;cursor:pointer;position:relative}
+.card-img{aspect-ratio:16/10;background:var(--beige) center/cover no-repeat;border-radius:var(--r2);position:relative;overflow:hidden}
+.ph{display:flex;align-items:flex-end;padding:14px;font-family:var(--serif);font-size:28px;color:#fff}
+.card-badges{position:absolute;left:10px;top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.card-status{position:absolute;right:10px;top:10px}
+.card-body{padding:14px 2px 0;display:flex;flex-direction:column;gap:6px;flex:1}
+.card-body h3{font-size:22px;line-height:1.15;margin:4px 0 2px}
+.card:hover h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.meta{display:flex;gap:8px;align-items:center;font-size:14px}
+.card-foot{margin-top:auto;padding-top:10px}
+.card-boxed{padding:18px;border-radius:var(--r4)}
+.card-boxed .card-body{padding:14px 0 0}
+/* horizontal */
+.card-h{flex-direction:row;padding:16px;gap:20px;border-radius:var(--r4);align-items:stretch}
+.card-h .card-img{width:44%;aspect-ratio:auto;min-height:220px;flex:none}
+.card-h .card-body{padding:4px 0}
+/* tiny */
+.tiny{display:flex;gap:16px;align-items:center;background:#fff;border-radius:var(--r4);padding:16px;cursor:pointer}
+.tiny .card-img{width:72px;height:72px;aspect-ratio:auto;flex:none}
+.tiny .tb{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.evline{display:flex;gap:14px;align-items:center;padding:0 0 18px}
+.evline-img{flex:none;width:128px;aspect-ratio:1.6;border-radius:6px;overflow:hidden;background:#f4f4f4 center/cover no-repeat}
+.evline-img .ph{font-size:14px}
+.evline .tb{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.evline h4{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.2;margin:0}
+.tiny h4{font-weight:400;font-size:16px;margin:0;line-height:1.25}
+.tiny .ph{font-size:0;padding:0}
+
+/* ===== Page: Overview ===== */
+.crumbs{font-size:13px;color:var(--b450);padding:18px 0 0}
+.crumbs a{text-decoration:none}
+.page-head{padding:20px 0 28px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.page-head h1{font-size:52px;line-height:1.05}
+.page-head p{max-width:560px;margin:12px 0 0}
+.filters{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.frow{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.frow .lbl{font-size:13px;color:var(--b450);min-width:64px}
+.filterbar{display:flex;gap:16px;align-items:center;margin-bottom:8px}
+.selwrap{position:relative;width:300px;flex:none}
+.selwrap select{appearance:none;width:100%;height:52px;border:1px solid var(--b450);border-radius:var(--r2);padding:0 44px 0 16px;font:inherit;font-size:16px;background:#fff;cursor:pointer}
+.selwrap svg{position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none}
+.resbar{display:flex;justify-content:space-between;align-items:center;margin:18px 0 18px;font-size:14px}
+.empty{padding:60px 20px;text-align:center;background:var(--beige-300);border-radius:var(--r4)}
+.empty h3{font-size:28px;margin-bottom:8px}
+@media (max-width:720px){.empty{padding:40px 16px}.empty .btn{width:100%}}
+.login-teaser{display:flex;gap:16px;align-items:center;justify-content:space-between;background:var(--beige);padding:16px 20px;border-radius:var(--r4);margin-bottom:20px;font-size:14px}
+
+/* ===== Drawer (Figma: Drawer main component) ===== */
+.scrim{position:fixed;inset:0;background:rgba(20,8,12,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:100%;background:#fff;z-index:41;transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.open .scrim{opacity:1;pointer-events:auto}
+.open .drawer{transform:none}
+/* Scroll-lås: siden bagved kan ikke scrolles, mens et sidepanel er åbent */
+html{scrollbar-gutter:stable}
+html:has(body.open){overflow:hidden}
+.drawer,.d-body{overscroll-behavior:contain}
+.d-hero{aspect-ratio:2/1;height:auto;background:var(--beige) center/cover no-repeat;flex:none;position:relative}
+.d-hero .ph{height:100%;font-size:40px}
+.d-icons{position:absolute;inset:16px 16px auto 16px;display:flex;justify-content:space-between}
+.icbtn{width:32px;height:32px;border-radius:50%;border:1px solid var(--b200);display:grid;place-items:center;background:#fff}
+.icbtn.dark{background:var(--b700);border-color:var(--b700);color:#fff}
+.d-head{display:flex;align-items:center;justify-content:space-between;padding:16px;gap:12px;flex:none}
+.d-head h2{font-size:24px;text-align:center;flex:1}
+.d-body{flex:1;overflow-y:auto;padding:4px 24px 24px}
+.d-body.withhero{padding-top:0}
+/* Topbilledet scroller med indholdet – kun luk-knappen ligger fast */
+.d-body.withhero .d-hero{margin:0 -24px 20px}
+.d-close{position:absolute;top:16px;right:16px;z-index:5}
+.d-title{margin:10px 0 16px}
+.facts{display:grid;gap:10px;margin:0 0 18px}
+.facts div{display:flex;gap:10px;align-items:flex-start}
+.desc p{margin:0 0 12px}
+.d-foot{flex:none;padding:16px 24px 20px;border-top:1px solid var(--b200);display:flex;gap:8px;background:#fff}
+.d-foot .btn{flex:1}
+.d-foot.stack{flex-direction:column}
+.goodie-box{background:var(--beige);border-radius:var(--r4);padding:18px;margin:18px 0}
+.goodie-box h4{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 6px}
+/* progress (Figma Progressbar) */
+.steps{flex:none;padding:0 24px 18px}
+/* Figma: Progressbar (node 18322:71697) – markører fordelt med space-between, 32px prik, 4px bjælke, 10px label */
+.pbar{position:relative;display:flex;justify-content:space-between;align-items:flex-start;isolation:isolate}
+.pbar-track,.pbar-fill{position:absolute;top:14px;left:40px;right:40px;height:4px;border-radius:20px;background:#e9e9e9;z-index:0}
+.pbar-fill{right:auto;background:var(--green);transition:width .3s ease}
+.pmark{position:relative;z-index:1;width:80px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.pdot{width:32px;height:32px;border-radius:250px;background:#e9e9e9;display:grid;place-items:center;color:#fff}
+.pdot svg.i{width:16px;height:16px;vertical-align:0}
+.pmark.done .pdot,.pmark.on .pdot{background:var(--green)}
+.pmark.on .pdot::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+.plbl{font-size:10px;line-height:14px;color:#555;text-align:center}
+.pmark.on .plbl{color:var(--b900)}
+/* day + time pickers (Figma: Goodie Day / Click & Collect) */
+@keyframes flash{0%,40%{background:var(--green-100)}100%{background:transparent}}
+.trow.flash{animation:flash 1.6s ease-out}
+.days{display:flex;gap:8px;overflow-x:auto;padding:0 24px 4px;margin:0 -24px;scroll-padding:0 24px;scrollbar-width:none}
+@media (max-width:720px){.days{padding:0 16px 4px;margin:0 -16px;scroll-padding:0 16px}}
+.day{flex:none;width:96px;border:1px solid var(--b300);border-radius:var(--r4);background:#fff;padding:12px 6px;text-align:center;font-size:14px;line-height:1.3}
+.day b{display:block;font-weight:600}
+.day.on{background:#000;border-color:#000;color:#fff}
+.day.none{opacity:.45}
+.times{margin-top:16px;border-top:1px solid var(--b200)}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--b200);gap:12px}
+.trow b{font-weight:600;display:block}
+.trow .avail{display:flex;gap:6px;align-items:center;font-size:13px}
+.dotc{width:14px;height:14px;border-radius:50%;display:inline-grid;place-items:center;color:#fff}
+.tbtn{min-width:110px}
+.tbtn.on{background:var(--green);border-color:var(--green);color:#fff}
+.sec-title{font-family:var(--serif);font-size:22px;margin:4px 0 12px}
+.summary{background:var(--b100);border-radius:var(--r4);padding:14px 16px;font-size:14px;display:grid;gap:6px}
+.summary .row{display:flex;justify-content:space-between;gap:12px}
+.summary .tot{font-weight:600;border-top:1px solid var(--b300);padding-top:8px;margin-top:4px}
+.stepper{display:flex;align-items:center;border:1px solid var(--b450);border-radius:var(--r2);height:48px}
+.stepper button{width:44px;height:100%;border:0;background:none;font-size:20px}
+.stepper button[disabled]{color:var(--b300);cursor:default}
+.stepper span{min-width:28px;text-align:center}
+.qty{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pay{display:grid;gap:8px}
+.payopt{display:flex;align-items:center;gap:12px;border:1px solid var(--b300);border-radius:var(--r2);padding:12px 14px;cursor:pointer}
+.payopt.on{border-color:var(--b700);box-shadow:0 0 0 1px var(--b700)}
+.payopt input{accent-color:var(--b700);width:18px;height:18px}
+.payopt .logos{margin-left:auto;display:flex;gap:4px}
+.payopt .logos span{font-size:10px;border:1px solid var(--b300);border-radius:3px;padding:2px 5px;font-weight:600}
+.cardbox{background:var(--b50);border:1px solid var(--b200);border-radius:var(--r4);padding:14px;margin:-2px 0 4px}
+.profile{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--b200);border-radius:var(--r4);padding:14px 16px;font-size:14px}
+.success-ic{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;margin:24px auto 16px}
+.success-ic svg{width:30px;height:30px}
+.center{text-align:center}
+
+/* ===== Toast ===== */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--b700);color:#fff;padding:12px 18px;border-radius:var(--r2);font-size:14px;display:flex;gap:10px;align-items:center;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== MyMagasin ===== */
+.my{display:grid;grid-template-columns:240px 1fr;gap:48px;padding:32px 0 80px}
+.side h2{font-size:28px;margin-bottom:16px}
+.side a{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--b200);text-decoration:none;font-size:15px}
+.side a.on{font-weight:600}
+.bk{display:grid;grid-template-columns:160px 1fr auto;gap:20px;padding:18px 0;border-bottom:1px solid var(--b200);align-items:start}
+.bk .card-img{aspect-ratio:4/3;cursor:pointer}
+.bk h3{font-size:22px;margin:6px 0 8px;cursor:pointer}
+.bk .acts{display:flex;flex-direction:column;gap:8px;min-width:180px}
+.bk.cancelled{opacity:.6}
+
+/* ===== Content page + Event module ===== */
+.hero{background:var(--beige);padding:56px 0;text-align:center}
+.hero h1{font-size:60px}
+.hero p{max-width:620px;margin:14px auto 0}
+.placeholder{border:1px dashed var(--b300);border-radius:var(--r4);height:220px;display:grid;place-items:center;color:var(--b400);font-size:14px;margin:40px 0}
+.mod{background:var(--beige);padding:48px 0 56px;margin:40px 0}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}
+.mod-head h2{font-size:40px}
+.mod-head p{margin:8px 0 0}
+.mod-ctrl{display:flex;gap:8px;align-items:center;border:1px dashed #9747ff;background:#f6f0ff;color:#6a2fd1;border-radius:var(--r2);padding:8px 12px;font-size:13px;margin:20px 0 0;flex-wrap:wrap}
+.mod-ctrl button{border:1px solid #c9a7ff;background:#fff;border-radius:var(--pill);padding:4px 12px;font-size:13px;color:#6a2fd1}
+.mod-ctrl button.on{background:#6a2fd1;color:#fff;border-color:#6a2fd1}
+.feat{display:grid;grid-template-columns:1.2fr 1fr;background:#fff;border-radius:var(--r4);overflow:hidden;cursor:pointer}
+.feat .card-img{border-radius:0;aspect-ratio:auto;min-height:380px}
+.feat .fb{padding:40px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.feat h3{font-size:40px;line-height:1.1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.car{position:relative}
+.track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 60px)/4);gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
+.track>*{scroll-snap-align:start}
+.arrows{display:flex;gap:8px}
+.tinygrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+
+/* ===== PDP (Figma: 30.00 Desktop PDP + PDP Buy Box) ===== */
+.pdp{display:grid;grid-template-columns:minmax(0,1fr) 456px;gap:24px;padding:12px 26px 64px;max-width:none}
+.pdp-crumbs{padding:14px 26px 0;font-size:12px;color:var(--b450)}
+.gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;min-width:0}
+.gal div{min-width:0;aspect-ratio:5/6;background:#f2f2f2 center/contain no-repeat;position:relative}
+.gal .badge{position:absolute;left:12px;top:12px;background:var(--pink-dark);color:#fff;font-size:12px;padding:3px 8px;border-radius:var(--r1)}
+.bb{align-self:start;display:flex;flex-direction:column;gap:18px}
+.bb-top{display:flex;justify-content:space-between;gap:16px}
+.bb-brand{font-size:15px;color:var(--b450);text-decoration:underline;text-underline-offset:3px}
+.bb h1{font-size:40px;line-height:1.05;margin-top:6px}
+.stars{display:flex;gap:6px;align-items:center;font-size:14px;margin-top:8px}
+.stars span{letter-spacing:1px}
+.fav{width:48px;height:48px;border:1px solid var(--b300);border-radius:var(--r2);display:grid;place-items:center;background:#fff;flex:none}
+.price{font-size:22px;color:var(--danger-700);font-weight:500}
+.price s{color:var(--b700);font-weight:400;margin-left:8px}
+.price-note{font-size:13px;color:var(--danger-700);margin-top:4px}
+.goodie-pts{display:flex;gap:12px;align-items:center;font-size:14px}
+.goodie-pts .m{width:28px;height:28px;border-radius:var(--r2);background:var(--b100);display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-size:15px}
+.sizes{display:flex;gap:8px;margin-top:8px}
+.sizes button{min-width:96px;height:48px;border:1px solid var(--b300);border-radius:var(--r4);background:#fff}
+.sizes button.on{border-color:var(--b700);box-shadow:0 0 0 1px var(--b700)}
+.bb .btn{height:56px;justify-content:space-between;padding:0 18px}
+.usps{display:grid;gap:14px;font-size:14px}
+.usps div{display:flex;gap:14px;align-items:flex-start}
+.usps svg.i{width:20px;height:20px;margin-top:1px}
+.usps a{display:block;text-decoration:underline;text-underline-offset:3px}
+/* Event-kort under buy box – samme "fane-label" som Free Gift-kortet i Figma */
+.pdp-ev{position:relative;border:1px solid var(--beige-700);border-radius:var(--r4);margin-top:10px}
+.pdp-ev .tab-lbl{position:absolute;left:50%;top:-11px;transform:translateX(-50%);background:var(--green);color:#fff;font-size:11px;padding:3px 10px;border-radius:var(--r2);white-space:nowrap}
+.pdp-ev .tiny{padding:18px 14px 14px;border-radius:var(--r4)}
+.pdp-ev .tiny .card-img{width:76px;height:76px}
+.pdp-ev .sub{font-size:12px;color:var(--b450)}
+.acc{border-top:1px solid var(--b200)}
+.acc div{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--b200);font-family:var(--serif);font-size:22px}
+.pdp-ctrl{margin:0}
+@media (max-width:1100px){.pdp{grid-template-columns:minmax(0,1fr) 380px}}
+@media (max-width:860px){
+  .pdp{grid-template-columns:1fr;padding:0 0 48px;gap:0}
+  .gal{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:88%;overflow-x:auto;scroll-snap-type:x mandatory;gap:4px}
+  .gal div{scroll-snap-align:start}
+  .bb{position:static;padding:20px 18px 0}
+  .pdp-crumbs{padding:12px 18px}
+}
+
+
+/* ===== PLP-filtre (målt på magasin.dk) ===== */
+.plp-crumbs{font-size:12px;padding:18px 0 0}
+.plp-h1{font-size:36px;margin:24px 0 24px}
+.fbar{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+/* Sticky filterrække som på magasin.dk PLP (.b-refinement-filters): sticky top 0, hvid baggrund,
+   og når headeren kommer frem ved scroll op, lægger rækken sig under headeren (top .2s) */
+.fsticky{position:sticky;top:0;z-index:15;background:#fff;margin:0 -32px;padding:10px 32px;transition:top .2s ease-in-out}
+html[data-scrolldir="up"] body.is-scrolled-header .fsticky{top:var(--header-height,0)}
+@media (max-width:720px){.fsticky{margin:0 -16px;padding:8px 16px}}
+.fbtn{flex:none;height:56px;border:1px solid var(--b700);border-radius:4px;padding:0 18px;font-size:14px;font-weight:500;background:#fff;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.fbtn:hover{background:var(--b50)}
+.cb{width:20px;height:20px;flex:none;border:1px solid var(--b450);border-radius:4px;display:grid;place-items:center;background:#fff;color:#fff}
+.cb.on{background:var(--b700);border-color:var(--b700)}
+.cb svg.i{width:13px;height:13px;vertical-align:0}
+.achips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.achip{background:#f0f0f0;border:0;border-radius:6px;padding:6px 10px;font-size:14px;color:var(--b450);display:inline-flex;gap:6px;align-items:center}
+.achip svg.i{width:12px;height:12px;vertical-align:0}
+.achip.reset{font-weight:500;color:var(--b700)}
+.resbar .res{color:var(--b400)}
+.frow2{display:flex;align-items:center;gap:12px;width:100%;padding:18px 0;border:0;border-bottom:1px solid var(--b200);background:none;text-align:left;font-size:14px}
+.frow2>span:first-child{flex:1}
+.frow2 .fl{display:block}
+.frow2 .fsub{display:block;font-size:12px;color:var(--b450);margin-top:3px}
+.frow2 .cnt{color:var(--b700)}
+.frow2.dim{opacity:.45}
+
+
+/* ===== Eventkort (Figma Product Card 27734:130013) ===== */
+.ec{display:flex;flex-direction:column;cursor:pointer;min-width:0}
+.ec-img{position:relative;z-index:2;height:208px;margin-bottom:-10px;border-radius:6px;overflow:hidden;background:#f4f4f4 center/cover no-repeat}
+.ec-img .ph{position:absolute;inset:0}
+/* Hover-zoom som mammut.com "Shop by category": scale(1.027), 1s easeOutExpo, kun billedet */
+.zoom-media{position:absolute;inset:0;background:#f4f4f4 center/cover no-repeat;transition:transform 1s cubic-bezier(.19,1,.22,1);will-change:transform}
+.zoom-media .ph{height:100%}
+.zoom-frame{position:relative;overflow:hidden;background:none!important}
+.ec:hover .zoom-media,.tiny:hover .zoom-media{transform:scale(1.027)}
+@media (prefers-reduced-motion:reduce){.zoom-media{transition:none}.ec:hover .zoom-media,.tiny:hover .zoom-media{transform:none}}
+.ec-fn{position:relative;display:flex;gap:6px;align-items:flex-start;padding:14px}
+.ec-tags{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.ec-callout{display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;font-size:12px;line-height:12px;padding:8px 6px;border-radius:4px;white-space:nowrap}
+.ec-callout svg.i{width:12px;height:12px;vertical-align:0}
+.ec-info{position:relative;z-index:1;flex:1;background:#fff;border-radius:0 0 6px 6px;padding:26px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.ec-place{background:#e9e9e9;color:#14080c;font-size:12px;line-height:12px;padding:8px 6px;border-radius:4px;white-space:nowrap}
+/* Kategori-badge: Figma Chips → System/Message/Info (surface #f4efe7, tekst #754d2c) – adskiller sig fra lokationsbadgen */
+.ec-cat{background:#f4efe7;color:#754d2c}
+.ec-tt{display:flex;flex-direction:column;gap:14px;width:100%}
+.ec-tt h3{font-size:28px;line-height:36px;color:#14080c}   /* Figma: display-5 */
+.ec:hover .ec-tt h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.ec-tt{flex:1}
+.ec-time{display:flex;gap:6px;align-items:center;font-size:14px;line-height:22px;color:#14080c}
+.ec-time svg.i{width:21px;height:21px;flex:none}
+.ec-type{font-size:14px;line-height:22px;color:#555}
+.ec-btn{width:100%;height:56px;border:0;border-radius:4px;background:#1e1516;color:#e9e9e9;font-size:14px;padding:0 18px;display:flex;align-items:center;justify-content:space-between}
+.ec-btn:hover{background:#2a2a2a}
+.ec-btn svg.i{width:24px;height:24px}
+.mod .ec-info{border-radius:0 0 6px 6px}
+@media (max-width:720px){
+  .ec-img{height:150px}
+  .ec-info{padding:22px 10px 14px;gap:14px}
+  .ec-tt h3{font-size:22px;line-height:28px}
+  .ec-time,.ec-type{font-size:13px;line-height:19px}.ec-time svg.i{width:18px;height:18px}
+  .ec-btn{height:48px;padding:0 12px}
+  .ec .l-long{display:none}.ec .l-short{display:inline}
+}
+
+/* ===== Prototype panel ===== */
+.proto{position:fixed;left:16px;bottom:16px;z-index:70;font-size:13px}
+.proto-toggle{background:#6a2fd1;color:#fff;border:0;border-radius:var(--pill);padding:10px 16px;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center}
+.proto-panel{position:absolute;left:0;bottom:48px;width:290px;background:#fff;border-radius:var(--r4);box-shadow:var(--shadow);padding:16px;display:none;border:1px solid #e2d4ff}
+.proto.open .proto-panel{display:block}
+.proto h5{margin:12px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--b400);font-weight:600}
+.proto h5:first-child{margin-top:0}
+.seg{display:flex;background:var(--b100);border-radius:var(--r2);padding:3px}
+.seg button{flex:1;border:0;background:none;padding:7px;border-radius:3px;font-size:13px}
+.seg button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12);font-weight:600}
+.plinks{display:grid;gap:4px}
+.plinks a{padding:6px 8px;border-radius:3px;text-decoration:none;background:var(--b50)}
+.plinks a:hover{background:var(--b100)}
+.sw{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.sw input{accent-color:#6a2fd1;width:18px;height:18px}
+
+/* ===== Møde 25/11 ===== */
+.ec-callout.is-open,.chip.is-open{background:var(--green);color:#fff}
+.ec-callout.is-sold,.chip.is-sold{background:var(--danger-700);color:#fff}   /* Figma: System/Danger 700 */
+.remind{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--b200);border-radius:var(--r4);padding:14px 16px;margin:0 0 18px;font-size:14px;cursor:pointer}
+.remind input{width:20px;height:20px;accent-color:var(--green);margin:0;flex:none}
+.remind>svg.i{width:20px;height:20px;flex:none}
+.remind b{display:block;font-weight:600;margin-bottom:2px}
+.remind.is-guest{cursor:default;background:var(--beige-300)}
+.cancel-row{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:14px}
+.cancel-row b{display:block;font-weight:500}
+.link-danger{color:var(--danger-700)}
+.chg-old{color:var(--b400);margin-right:8px;font-weight:400}
+.refund-note{margin:8px 0 0 30px}
+.success-ic.neutral{background:var(--b700)}
+.apay-mark{display:inline-flex;align-items:center;gap:1px;background:#000;color:#fff;border-radius:4px;padding:0 6px;height:20px;font:500 12px/1 -apple-system,BlinkMacSystemFont,'Inter',sans-serif;letter-spacing:-.01em}
+.payopt .logos .apay-mark{border:1px solid #000;padding:0 6px;font-size:12px;font-weight:500}
+.apay-mark svg.i{width:11px;height:11px;margin-top:-2px;vertical-align:0}
+.apay-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;height:48px;border:0;border-radius:var(--r2);background:#000;color:#fff;font:500 16px/1 -apple-system,BlinkMacSystemFont,'Inter',sans-serif;cursor:pointer}
+.apay-btn svg.i{width:17px;height:17px;margin:-3px -3px 0 2px;vertical-align:0}
+.apay-btn[disabled]{opacity:.35;cursor:not-allowed}
+/* MyMagasin – navigation som magasin.dk */
+.side .back{display:inline-flex;gap:4px;align-items:center;border:0;padding:0 0 20px;font-size:12px;color:var(--b450)}
+.side .back svg.i{width:12px;height:12px}
+.side h2{margin-bottom:2px}
+.side .lvl{font-size:12px;margin:0 0 24px;display:flex;gap:6px;align-items:center}
+.side h6{font-size:12px;font-weight:600;margin:0 0 12px}
+.side .grp{border-top:1px solid var(--b200);margin-bottom:28px}
+.side a{justify-content:flex-start;gap:12px;align-items:center;padding:11px 0;font-size:13px;cursor:pointer}
+.side a.on{font-weight:600}
+.side a svg.i{width:18px;height:18px}
+.side a .count{margin-left:auto}
+.side .id{font-size:11px;color:var(--b450);margin:0}
+.mstar{font-family:var(--serif);font-style:italic;font-size:15px;width:18px;text-align:center;line-height:1}
+.side a.on .mstar{background:var(--green-200);border-radius:var(--pill);width:auto;padding:2px 6px;margin-left:-6px}
+.ov-h{font-size:40px;margin:30px 0 24px}
+.ov-lvl{border:1px solid var(--b300);border-radius:var(--r4);padding:28px;text-align:center;margin-bottom:24px}
+.ov-lvl-t{font-family:var(--serif);font-size:34px;margin:6px 0 8px;display:flex;gap:10px;justify-content:center;align-items:center}
+.ov-lvl-t .gstars svg.i{width:18px;height:18px}
+.ov-app{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:22px;align-items:center;margin-bottom:48px}
+.ov-app-img{aspect-ratio:3/2;background:#f4f4f4 center/cover no-repeat}
+.ov-app h3{font-size:22px;margin-bottom:8px}
+.ov-h2{font-size:34px;margin:0 0 20px}
+.ov-row{display:flex;gap:16px;align-items:center;border:1px solid var(--b300);border-radius:var(--r4);padding:8px 16px 8px 8px;margin-bottom:10px;cursor:pointer}
+.ov-row:hover{border-color:var(--b700)}
+.ov-row .tx{flex:1;min-width:0}
+.ov-thumb{width:68px;height:68px;border-radius:var(--r2);background:#f4f4f4 center/cover no-repeat;flex:none;overflow:hidden}
+.ov-thumb.ev{width:110px}
+.ov-thumb.ev .ph{font-size:12px;padding:6px}
+.ov-thumb.vouch{background:#111;color:#fff;display:flex;align-items:flex-end;padding:6px;font-weight:700;font-size:15px}
+.ov-lbl{font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.ov-row h4{font-family:var(--serif);font-weight:400;font-size:20px;margin:3px 0 2px}
+.ov-empty{cursor:default;padding:18px 20px}
+.ov-more{display:inline-block;margin:6px 0 48px;color:var(--green)}
+.sec-split{height:1px;background:var(--b700);margin:56px 0 36px}
+.my .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.d-overlay{position:absolute;inset:0;z-index:5;background:rgba(20,8,12,.45);display:flex;align-items:flex-end;padding:16px;animation:ovIn .2s ease}
+.d-sheet{position:relative;width:100%;background:#fff;border-radius:var(--r4);padding:24px 20px 18px;box-shadow:var(--shadow);animation:shIn .25s cubic-bezier(.2,.8,.2,1)}
+.d-sheet h4{display:flex;gap:8px;align-items:center;font-family:var(--serif);font-weight:400;font-size:24px;margin:0 32px 8px 0}
+.d-sheet h4 svg.i{width:20px;height:20px}
+.d-sheet-x{position:absolute;top:12px;right:12px}
+@keyframes ovIn{from{opacity:0}}@keyframes shIn{from{transform:translateY(24px);opacity:0}}
+.ov-bk{border-top:1px solid var(--b200);margin-bottom:4px}
+/* Log ind / Opret profil – samme opbygning som de øvrige sidepaneler */
+.field.has-eye{padding-right:48px}
+.af-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;padding:4px;display:grid;cursor:pointer;color:var(--b700)}
+.af-eye svg.i{width:20px;height:20px}
+.captcha-mock{display:flex;align-items:center;gap:14px;width:300px;max-width:100%;height:74px;margin-top:18px!important;border:1px solid #d3d3d3;border-radius:3px;background:#f9f9f9;padding:0 12px;margin-top:22px;font-size:14px}
+.captcha-mock .cb{width:26px;height:26px;border:2px solid #c1c1c1;border-radius:2px;background:#fff;flex:none}
+.captcha-logo{margin-left:auto;font-size:9px;color:#9b9b9b}
+/* Transition mellem visninger i sidepanelet */
+.nav-fwd{animation:navFwd .28s cubic-bezier(.2,.8,.2,1)}
+.nav-back{animation:navBack .28s cubic-bezier(.2,.8,.2,1)}
+.drawer{overflow-x:hidden}
+@keyframes navFwd{from{opacity:0;transform:translateX(28px)}}
+@keyframes navBack{from{opacity:0;transform:translateX(-28px)}}
+@media (prefers-reduced-motion:reduce){.nav-fwd,.nav-back{animation:none}}
+/* Del event + landingsside */
+.d-share{position:absolute;top:16px;right:56px;z-index:5}
+.lp-link{display:inline-flex;gap:6px;align-items:center;margin:4px 0 8px}
+.lp-link svg.i{width:16px;height:16px}
+.lp{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:start;padding:8px 0 40px}
+.lp-img{aspect-ratio:1.6;border-radius:6px;overflow:hidden;background:#f4f4f4 center/cover no-repeat}
+.lp-img .ph{font-size:48px;padding:28px}
+.lp-info{display:flex;flex-direction:column;gap:0}
+.lp-info>.banner{margin-bottom:18px}
+.lp-tt{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin:14px 0 6px}
+.lp-tt h1{font-size:40px;line-height:1.1}
+.lp-tt .icbtn{width:40px;height:40px;flex:none}
+.lp-cta{display:flex;gap:8px;margin-top:8px}.lp-cta .btn{flex:1}
+.lp-desc{max-width:760px;border-top:1px solid var(--b200);padding-top:28px}
+.lp-desc h2{font-size:28px;margin-bottom:12px}
+.lp-desc p{margin:0 0 12px}
+.modal{position:fixed;inset:0;z-index:60;display:none}
+.modal.on{display:block}
+.m-ov{position:absolute;inset:0;background:rgba(20,8,12,.45);display:flex;align-items:flex-end;justify-content:center;padding:16px;animation:ovIn .2s ease}
+.m-sheet{max-width:448px}
+@media (max-width:860px){.lp{grid-template-columns:1fr;gap:24px}.lp-tt h1{font-size:32px}}
+/* Sidepanel – typografi og luft som Drawer i Figma (Demo MyMagasin – Goodie, node 18205:55134)
+   Large (>1100px): padding 26 · titel 36/43 · tekst 14/22
+   Medium (721–1100px): padding 19 · titel 28/36 · tekst 14/21
+   Small (≤720px): padding 14 · titel 24/31 · tekst 12/18 */
+.drawer .d-body{padding:4px 26px 26px;font-size:14px;line-height:22px}
+.drawer .d-body.withhero{padding-top:0}
+.drawer .d-body.withhero .d-hero{margin:0 -26px 26px}
+.drawer .d-foot{padding:16px 26px 26px}
+.drawer .d-title{font-size:36px;line-height:43px}
+.drawer .desc p{margin:0 0 1em}
+/* Knapper i panelets bund: Large 56 · Medium 52 · Small 48 (Figma Drawer footer) */
+.drawer .d-foot .btn,.drawer .d-foot .apay-btn{height:56px}
+@media (max-width:1100px){
+  .drawer .d-body{padding:4px 19px 19px;line-height:21px}
+  .drawer .d-body.withhero .d-hero{margin:0 -19px 19px}
+  .drawer .d-foot{padding:14px 19px 19px}
+  .drawer .d-title{font-size:28px;line-height:36px}
+  .drawer .d-foot .btn,.drawer .d-foot .apay-btn{height:52px}
+}
+@media (max-width:720px){
+  .drawer .d-body{padding:4px 14px 14px;font-size:12px;line-height:18px}
+  .drawer .d-body.withhero .d-hero{margin:0 -14px 14px}
+  .drawer .d-foot{padding:12px 14px 14px}
+  .drawer .d-title{font-size:24px;line-height:31px}
+  .drawer .d-foot .btn,.drawer .d-foot .apay-btn{height:48px}
+}
+/* Accordions (FAQ) – Figma "Drawer module / Accordions": Large padding/radius 18/10 · Medium 13/7 · Small 10/4 */
+.faq-t{margin-top:24px!important}
+.faq{display:grid;gap:14px;margin-bottom:8px}
+.faq details{border:1px solid #bfbfbf;border-radius:10px;background:#fff}
+.faq details[open]{border-color:#180d10}
+.faq summary{list-style:none;display:flex;gap:18px;align-items:center;padding:18px;font-weight:500;font-size:14px;line-height:22px;cursor:pointer}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary svg.i{width:24px;height:24px;flex:none;margin-left:auto;transition:transform .2s;vertical-align:0}
+.faq details[open] summary svg.i{transform:rotate(180deg)}
+.faq-a{padding:0 18px 18px;font-size:14px;line-height:22px}
+@media (max-width:1100px){.faq{gap:10px}.faq details{border-radius:7px}.faq summary{padding:13px;gap:13px;line-height:21px}.faq-a{padding:0 13px 13px;line-height:21px}}
+@media (max-width:720px){.faq{gap:8px}.faq details{border-radius:4px}.faq summary{padding:10px;gap:10px;font-size:12px;line-height:18px}.faq-a{padding:0 10px 10px;font-size:12px;line-height:18px}}
+.share-lbl{font-size:12px;font-weight:500;margin:0 0 8px}
+.share-url+.share-lbl{margin-top:18px}
+.share-url{display:flex;align-items:stretch;gap:8px;font-size:13px}
+.share-url span{flex:1;min-width:0;display:flex;align-items:center;padding:0 14px;height:48px;background:var(--b100);border-radius:var(--r2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--b450)}
+.share-url span{display:block;line-height:48px}
+.share-url .btn{flex:none;height:48px;padding:0 22px}
+/* Trigger-mails */
+.mail-grp{display:block;font-size:12px;font-weight:600;padding:14px 0 4px;border-bottom:1px solid var(--b200)}
+.mail-nav button.sub{padding-left:16px}
+.mails{display:grid;grid-template-columns:260px 1fr;gap:40px;padding:32px 0 80px}
+.mail-nav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--b200);padding:12px 0;font-size:14px;cursor:pointer}
+.mail-nav button.on{font-weight:600}
+.mail-wrap{background:var(--b100);border-radius:var(--r4);padding:24px}
+.mail-meta{font-size:13px;margin:0 auto 14px;max-width:600px}
+.mail{max-width:600px;margin:0 auto;background:#fff}
+.mail-hd{padding:22px;text-align:center;border-bottom:1px solid var(--b200)}.mail-hd img{height:22px}
+.mail-hero{aspect-ratio:1.6;background:#f4f4f4 center/cover no-repeat}
+.mail-bd{padding:28px 32px}
+.mail-bd h1{font-size:32px;margin-bottom:10px}
+.mail-bd .summary{margin:16px 0 0}
+.mail-cta{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.mail-ft{padding:20px 32px;background:var(--beige-300);font-size:12px;color:var(--b450)}
+.mail-var{border:1px dashed var(--b300);border-radius:var(--r2);padding:10px 12px;font-size:13px;margin-top:12px;background:#fff}
+@media (max-width:1100px){.my .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.mails{grid-template-columns:1fr}.ov-app{grid-template-columns:1fr}}
+
+/* ===== Responsive ===== */
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}.track{grid-auto-columns:calc((100% - 40px)/3)}
+  .nav{display:none}.burger{display:block}.hdr-main{gap:20px}.hdr-main .logo{margin-right:auto}}
+@media (max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}.my{grid-template-columns:1fr;gap:20px}.side{display:none}.callout-r{display:none}}
+@media (max-width:720px){
+  .callout{padding:0 16px}
+  .callout-l span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .callout-l{min-width:0}
+  .hdr-main{height:auto;display:grid;grid-template-columns:1fr auto 1fr;padding:12px 16px;gap:12px}
+  .hdr-main .logo{margin:0}
+  .burger{justify-self:start}
+  .hdr-actions{justify-self:end}
+  .hdr-btn span{display:none}
+  .hdr-search{grid-column:1/-1;width:100%;order:5}
+  .open .proto{display:none}
+  .filterbar{flex-wrap:wrap;align-items:stretch;gap:10px}.selwrap{width:100%}.filterbar .ftoggle{flex:1;justify-content:center;padding:0 10px}.filterbar .frow{width:100%}
+  .container{padding:0 16px}
+  .page-head{flex-direction:column;align-items:flex-start}
+  .page-head h1,.hero h1{font-size:38px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+  .card-body h3{font-size:18px}
+  .card-foot{display:none}
+  .drawer{top:auto;height:92vh;width:100%;border-radius:12px 12px 0 0;transform:translateY(100%)}
+  .d-hero{border-radius:12px 12px 0 0}   /* samme ratio (2:1) som på desktop */
+  .steps{padding:0 12px 14px}
+  .mod-head{flex-direction:column;align-items:flex-start}.mod-head h2{font-size:30px}
+  .feat,.two,.g3{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:85%;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px}
+  .feat{grid-auto-columns:100%;display:flex;flex-direction:column}
+  .feat .card-img{min-height:220px}.feat .fb{padding:20px}.feat h3{font-size:28px}
+  .card-h{flex-direction:column;padding:12px}.card-h .card-img{width:100%;min-height:0;aspect-ratio:16/10}
+  .track{grid-auto-columns:80%}
+  .arrows{display:none}
+  .tinygrid{grid-template-columns:1fr}
+  .bk{grid-template-columns:96px 1fr}.bk .acts{grid-column:1/-1;flex-direction:row;min-width:0}.bk .acts .btn{flex:1}
+}
+</style>
+</head>
+<body>
+<!-- Header genskabt efter www.magasin.dk (callout-banner + hovedrække) -->
+<header class="hdr">
+  <div class="callout">
+    <div class="callout-l"><span class="pause" aria-hidden="true">II</span><span><b>FRI FRAGT*</b> *på ordrer over 499 kr. for goodie-medlemmer</span></div>
+    <nav class="callout-r"><a>Goodie</a><a>Journal</a><a>Ansvarlighed</a><a href="#/events" id="navEvents">Services</a><a>Forretninger</a><a>Lust Copenhagen</a></nav>
+  </div>
+  <div class="hdr-main">
+    <button class="burger" aria-label="Menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <a class="logo" href="#/events" aria-label="Magasin"><svg width="80" height="30" aria-hidden="true" viewBox="0 0 80 30" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.6484 22.3097C22.9017 22.3097 23.1389 22.1079 23.1831 21.8558C23.2233 21.6307 23.0946 21.4368 22.8775 21.4019C22.6685 21.3708 22.4674 21.3204 22.2704 21.2467C21.3095 20.8471 21.0603 19.9781 21.2412 18.9229L23.4123 6.3069C23.5087 5.74438 23.7138 5.24781 24.1641 4.81331C24.6144 4.37881 25.1772 4.2857 25.728 4.1732C25.917 4.14216 26.0617 3.99474 26.0859 3.81241C26.1221 3.6068 25.9854 3.44386 25.7803 3.44386L20.7306 3.4361C20.4693 3.4361 20.2723 3.4749 20.1516 3.55637C20.031 3.63783 19.9064 3.78525 19.7938 4.0025L12.7982 16.1995C12.754 16.2771 12.6655 16.3275 12.5731 16.3275C12.4484 16.3275 12.3439 16.2422 12.3198 16.1258L9.90346 4.27406C9.77883 3.7387 9.69842 3.44386 9.11545 3.44386H4.02151C3.81245 3.44386 3.61544 3.61068 3.57926 3.82017C3.54709 4.00638 3.65565 4.16156 3.83255 4.1926C4.36727 4.2857 5.00251 4.47968 5.2759 4.96461C5.57743 5.50385 5.54929 6.175 5.42466 6.97804C5.42466 6.98192 3.45462 18.4263 3.45462 18.4263C3.26968 19.4233 2.43744 21.4678 0.358859 21.6463C0.177938 21.6695 0.0372214 21.8014 0.00505764 21.976C-0.0271061 22.1622 0.0975285 22.3097 0.28247 22.3097H6.36545C6.57451 22.3097 6.77151 22.1428 6.8077 21.9333C6.84388 21.7394 6.72327 21.5726 6.53029 21.557C6.1001 21.5221 5.59352 21.4096 5.21961 21.0876C4.71705 20.657 4.51201 19.7802 4.61654 18.9772C4.66479 18.597 4.70499 18.1858 4.77736 17.7552L6.65492 6.83451C6.671 6.7414 6.75543 6.67157 6.85594 6.66769C6.95244 6.66769 7.03687 6.73364 7.05697 6.82287C7.40273 8.45224 10.3136 22.1739 10.3497 22.3368C10.3819 22.4804 10.4905 22.5463 10.6392 22.5463C10.804 22.5463 10.9407 22.461 11.0252 22.3097C11.1056 22.1661 18.9616 8.07205 19.6893 6.7608C19.7215 6.7026 19.7858 6.66381 19.8582 6.66381C19.9627 6.66381 20.0511 6.74528 20.0511 6.85002C20.0511 6.86166 20.0511 6.86942 20.0471 6.88106L17.9766 18.919C17.8278 19.7841 17.2046 20.7346 16.3563 21.1691C16.0106 21.3475 15.3874 21.4523 14.9934 21.5027C14.7803 21.5376 14.6155 21.6967 14.5753 21.8984C14.535 22.1234 14.6838 22.3058 14.909 22.3058L22.6484 22.3097ZM69.4949 7.24185C69.4909 7.99834 68.8516 8.60742 68.0676 8.59966C67.2837 8.59578 66.6524 7.97895 66.6605 7.22245C66.6645 6.46984 67.2997 5.86464 68.0797 5.86464C68.8637 5.86464 69.4989 6.48147 69.4949 7.24185ZM34.5369 3.60292C34.5168 3.50205 34.4243 3.4361 34.3198 3.43998H31.9678C31.8432 3.43998 31.7387 3.33912 31.7387 3.21885L31.7346 0.898938C31.7387 0.798072 31.6663 0.708845 31.5658 0.689447C31.4251 0.666171 31.2884 0.73988 31.2321 0.867902L30.1305 3.26541C30.0822 3.37403 29.9696 3.44386 29.849 3.44386H27.4408C27.3 3.44774 27.1794 3.54085 27.1432 3.67275C27.1111 3.76974 27.1513 3.8706 27.2438 3.92103L28.8962 4.82883C29.0449 4.9103 29.0972 5.09651 29.0128 5.24005C29.0087 5.24393 29.0087 5.24781 29.0047 5.25169L27.5734 7.45134C27.493 7.57548 27.5292 7.69574 27.5976 7.75782C27.686 7.8354 27.8227 7.83153 27.9353 7.75006L30.1063 6.12069C30.235 6.01982 30.424 6.03922 30.5285 6.15948L31.9276 7.73842C32 7.81213 32.1005 7.83928 32.2251 7.78109C32.3297 7.73454 32.4302 7.61428 32.402 7.47462L31.9517 5.23617C31.9236 5.10039 31.996 4.96461 32.1286 4.90642L34.36 3.92879C34.4846 3.86672 34.557 3.73482 34.5369 3.60292Z" fill="#14080c"></path> <path d="M34.6352 10.8207C34.7032 10.5819 34.6912 10.3933 34.5951 10.2585C34.4991 10.1199 34.339 10.0544 34.1229 10.0544H33.6426C33.2584 10.0544 33.0503 10.3856 32.7861 10.6435C32.3699 10.3009 32.0097 10.1006 31.2973 10.1006C29.9366 10.1006 27.7353 11.4521 25.8183 13.8971C24.7697 15.2601 22.1963 19.9345 24.1414 21.6979C25.7422 23.1457 28.2957 20.77 28.916 19.9768C29.2362 19.5687 29.5884 19.0758 29.9086 18.6831C29.9446 18.6408 30.0046 18.6331 30.0486 18.6677C30.0806 18.6947 30.0967 18.737 30.0806 18.7755C29.9686 19.0989 29.8525 19.5879 29.7605 20.0038C29.5964 20.7161 29.4443 22.1561 30.8411 22.1561C31.8736 22.1561 32.7181 21.336 33.3385 20.589C33.9708 19.8267 34.5151 18.9411 34.5151 18.6947C34.5111 18.4713 34.319 18.2981 34.0909 18.2981C33.9508 18.2981 33.8187 18.3674 33.7467 18.4867C33.7467 18.4906 33.4785 18.8872 33.1584 19.3377C32.9222 19.6688 32.506 20.2079 32.2739 20.2079C32.1458 20.2079 32.0617 20.1231 32.0377 19.9499C31.9897 19.6187 32.1098 19.0989 32.2699 18.5676L34.6352 10.8207ZM31.1652 14.8597C29.9366 17.3586 27.9675 19.9345 26.6908 19.9345C25.25 19.9345 26.6788 16.4383 27.8514 14.4939C28.924 12.7112 30.4569 11.0594 31.7256 11.0594C32.9582 11.0594 32.3379 12.4763 31.1652 14.8597ZM54.9064 10.8207C54.9744 10.5819 54.9624 10.3933 54.8664 10.2585C54.7703 10.1199 54.6142 10.0544 54.3941 10.0544H53.9139C53.5296 10.0544 53.3215 10.3856 53.0574 10.6435C52.6411 10.3009 52.2809 10.1006 51.5686 10.1006C50.2078 10.1006 48.0066 11.4521 46.0895 13.8971C45.0409 15.2601 42.4675 19.9345 44.4126 21.6979C46.0135 23.1457 48.5669 20.77 49.1872 19.9768C49.5074 19.5687 49.8596 19.0758 50.1798 18.6831C50.2158 18.6408 50.2798 18.6369 50.3199 18.6677C50.3519 18.6947 50.3639 18.737 50.3519 18.7755C50.2358 19.0989 50.1238 19.5879 50.0317 20.0038C49.8676 20.7161 49.7155 22.1561 51.1123 22.1561C52.1449 22.1561 52.9893 21.336 53.6097 20.589C54.242 19.8267 54.7863 18.9411 54.7863 18.6947C54.7823 18.4713 54.5902 18.2942 54.3621 18.2981C54.222 18.2981 54.0899 18.3674 54.0179 18.4867C54.0179 18.4906 53.7498 18.8872 53.4296 19.3377C53.1935 19.6688 52.7772 20.2079 52.5451 20.2079C52.417 20.2079 52.333 20.1231 52.309 19.9499C52.2609 19.6187 52.381 19.0989 52.5411 18.5676L54.9064 10.8207ZM51.4365 14.8597C50.2078 17.3586 48.2387 19.9383 46.958 19.9383C45.5212 19.9383 46.946 16.4422 48.1186 14.4978C49.1912 12.715 50.7281 11.0632 51.9928 11.0632C53.2295 11.0594 52.6051 12.4763 51.4365 14.8597Z" fill="#14080c"></path> <path d="M47.0511 9.88583C46.9187 9.46617 46.6579 8.8833 45.9598 8.8833C45.7752 8.8833 45.711 8.98433 45.6829 9.13588C45.5305 9.97909 45.1974 10.3249 44.2867 10.3793C43.7531 10.4104 42.9386 10.3172 42.4291 10.2744C40.9646 10.154 39.7449 10.2356 38.762 10.6863C37.2694 11.3702 36.1701 12.3999 35.4921 13.8921C34.3807 16.3401 35.8812 18.3102 37.7308 18.4035C37.8071 18.4074 37.783 18.4928 37.7228 18.5239C37.2895 18.7454 36.3266 19.3205 35.9214 19.9073C35.2032 20.9525 35.1069 21.8346 35.9896 22.8915C37.1571 24.2904 40.7038 24.2283 41.6106 25.3279C42.3568 26.2333 40.9205 28.8329 37.458 28.8329C34.5251 28.8329 32.3706 27.6866 33.2693 25.1492C33.4499 24.644 33.5863 24.4381 33.8952 24.17C34.1119 23.9835 33.9875 23.5288 33.5823 23.5288C31.9493 23.5288 30.6012 24.916 30.7136 26.2994C30.8259 27.6827 32.5351 29.9637 37.3617 29.9637C42.1883 29.9637 45.0209 26.8628 44.1663 24.2283C43.5324 22.2776 40.2785 22.1377 38.1481 21.1274C37.3457 20.7466 37.47 19.9267 38.12 19.3555C38.3968 19.1146 38.8542 18.8814 39.2314 18.7299C41.4661 17.9333 43.0229 16.9502 44.07 14.8324C44.5234 13.9193 44.5314 12.4893 43.6889 11.4052C43.6608 11.3663 43.7009 11.2925 43.7531 11.3003C43.9697 11.3313 45.1453 11.4596 45.6227 11.4596C46.694 11.4557 47.2637 10.5542 47.0511 9.88583ZM41.6186 14.3584C40.8162 16.3945 39.6647 17.5292 38.6576 17.5292C37.7429 17.5292 37.3055 15.9982 38.0398 14.1874C38.79 12.3455 39.9736 11.0865 41.1051 11.1837C41.7711 11.242 42.401 12.365 41.6186 14.3584ZM54.963 20.1093C54.963 20.9564 55.8738 22.4486 58.0845 22.4486C60.4677 22.4486 62.0966 20.7699 61.7877 18.7804C61.4788 16.7676 59.6813 14.6381 58.8789 13.3014C58.5699 12.7846 58.1246 11.378 59.3884 11.1604C60.0183 11.0516 60.3634 11.343 60.9491 12.501C61.4266 13.4491 62.6262 13.146 62.6262 12.0308C62.6262 11.3663 62.0164 10.2511 60.1908 10.2511C59.0193 10.2511 57.2861 10.7329 56.8166 12.4388C56.4796 13.6628 56.8929 14.7314 57.4867 15.8661C58.1045 17.0551 59.6933 19.0174 59.7856 19.8762C59.8699 20.6533 59.4526 21.31 58.7866 21.4227C57.0935 21.7103 57.2459 19.8024 56.5077 19.27C55.946 18.8736 54.963 19.1495 54.963 20.1093Z" fill="#14080c"></path> <path d="M65.4063 19.9017C65.3544 20.0937 65.3744 20.3779 65.6298 20.4586C65.8174 20.5162 66.0369 20.3703 66.1607 20.2589C66.7793 19.725 67.2063 18.811 67.346 18.5268C67.4099 18.3924 67.5536 18.3079 67.7052 18.3079C67.9447 18.3117 68.1363 18.4961 68.1323 18.7265C68.1323 18.7687 68.1243 18.811 68.1123 18.8532C67.7851 19.8211 66.4321 22.1561 64.668 22.1561C63.9216 22.1561 62.6005 21.5724 63.2152 19.5714C63.5465 18.4922 64.66 14.786 65.095 13.3958C65.1709 13.1538 65.6578 11.9786 65.0671 11.9786C64.6001 11.9786 63.9535 12.7928 63.4108 13.7299C63.3389 13.8451 63.2152 13.9219 63.0755 13.9258C62.7362 13.9258 62.5287 13.6031 62.6724 13.3458C63.0915 12.5969 63.6542 11.8288 64.181 11.3218C64.8037 10.7227 65.566 10.0544 66.5238 10.0544C68.0046 10.0544 67.9207 11.8365 67.6254 12.7813C67.1704 14.2791 65.4063 19.9017 65.4063 19.9017ZM77.0286 13.3958C76.5935 14.786 75.4201 18.4922 75.0849 19.5714C74.4702 21.5724 75.7873 22.1561 76.5337 22.1561C78.2977 22.1561 79.6547 19.8211 79.978 18.8532C80.0538 18.6343 79.9261 18.4 79.7026 18.3271C79.6587 18.3155 79.6148 18.3079 79.5709 18.3079C79.4193 18.3079 79.2756 18.3924 79.2117 18.5268C79.072 18.811 78.645 19.725 78.0263 20.2589C77.8986 20.3664 77.6831 20.5162 77.4955 20.4586C77.2401 20.3779 77.2161 20.0937 77.272 19.9017C77.272 19.9017 78.9124 14.8859 79.3793 13.3881C79.6547 12.5086 80.2215 10.0928 77.28 10.0928C75.5718 10.0928 73.4565 12.6852 73.0254 13.5532C73.0055 13.5955 72.9576 13.6147 72.9097 13.6031C72.8578 13.5878 72.8259 13.534 72.8378 13.4802C73.4006 11.5984 73.8835 10.1005 72.3868 10.1005C70.9381 10.1005 69.182 12.7697 68.8547 13.3612C68.7469 13.5609 68.8307 13.8067 69.0343 13.9066C69.0942 13.9373 69.158 13.9526 69.2259 13.9526C69.3735 13.9526 69.5092 13.8758 69.5771 13.7529C70.0161 12.9157 70.9421 11.7904 71.2893 12.0708C71.4968 12.2436 71.3332 13.1308 71.2374 13.5187C70.9181 14.7745 69.4534 20.3395 69.1141 21.6069C69.0742 21.7567 69.17 21.9103 69.3256 21.9449C69.3456 21.9487 69.3695 21.9526 69.3935 21.9526H70.7984C71.0738 21.9526 71.3132 21.7798 71.3891 21.5263C71.6205 20.7582 71.884 19.8441 72.0755 19.2296C72.4507 18.0121 72.6742 17.052 73.0893 15.992C73.4285 15.1279 73.7279 14.5095 74.2547 13.7145C74.6778 13.077 75.8432 11.8211 76.6574 11.8211C77.5873 11.8211 77.2082 12.8197 77.0286 13.3958Z" fill="#14080c"></path> </svg></a>
+    <nav class="nav"><a>Black Friday</a><a>Dame</a><a>Herre</a><a href="#/pdp">Skønhed</a><a>Bolig</a><a>Børn</a><a>Sport</a><a>Delikatesser</a><a>Gaver</a><a href="#/jul">Jul</a><a>Mærker</a></nav>
+    <div class="hdr-search"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Søg</span><svg class="cam" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><circle cx="12" cy="12" r="3"/></svg></div>
+    <div class="hdr-actions" id="hdrActions"></div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div id="drawerRoot">
+  <div class="scrim" data-action="close"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside>
+</div>
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<div class="proto" id="proto">
+  <div class="proto-panel" id="protoPanel"></div>
+  <button class="proto-toggle" data-action="proto">◆ Prototype</button>
+</div>
+
+<script>
+/* ======================= Ikoner ======================= */
+const I = {
+  clock:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  pin:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  cal:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  ticket:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 1 0-4V4H3z" transform="translate(0 2)"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>',
+  users:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.5 5.2"/></svg>',
+  star:'<svg class="i star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z"/></svg>',
+  lock:'<svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>',
+  hourglass:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg>',
+  arrow:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M14 6l6 6-6 6"/></svg>',
+  back:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>',
+  next:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg>',
+  close:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  check:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  info:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  warn:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17v.5"/></svg>',
+  user:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>',
+  bag:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  unlock:'<svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 9.6-1.9l-1.9.8A3 3 0 0 0 9 7v3h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1z"/></svg>',
+  mail:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3.5 6l8.5 7 8.5-7"/></svg>',
+  apple:'<svg class="i apl" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>',
+  eye:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  share:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12M7.5 7.5L12 3l4.5 4.5M5 11v9h14v-9"/></svg>',
+  link:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  sms:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  fb:'<svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg>',
+  chevdown:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 9l6 6 6-6"/></svg>',
+  heart:'<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/></svg>',
+};
+
+/* ======================= Data ======================= */
+const CDN='https://cdn-mag.clientela.com/styles/event_list_rectangle_image/public/client_image/';
+const IMG={
+  hca:CDN+'1400X900_HCA%20Workshop%20%28Journal%20%2B%20Event%20Calendar%20%2B%20Goodie%20app%29.jpg?itok=RGOzvTy9',
+  market:CDN+'1400X900_Christmas%20Market%20%28Journal%20%2B%20Event%20Calendar%29.jpg?itok=w1W46W16',
+  clarins:CDN+'2025%20DCH%20BEAUTY%20CONCIERGERIE%20GIRLY%20%20BLIND%2045-1.png?itok=DKiDtmcB',
+  mumi:CDN+'Design%20uden%20navn_2.jpg?itok=BBdZo8EY',
+  theodor:CDN+'theodor.png?itok=Jsu_o4J9',
+  herrera:CDN+'Caroline%20Herrera.png?itok=0zxhx3zW',
+  goodie:CDN+'Goodie%20app%20fordele_2.png?itok=WURk5lK-',
+};
+const LOCS=['Kgs. Nytorv','Aarhus','Aalborg','Lyngby','Odense','Fields','Rødovre'];
+const CATS=['Jul','Skønhed','Børn','Mad & Vin','Mode','Workshop'];
+const ADDR={'Kgs. Nytorv':'Kongens Nytorv 13, 1095 København K','Aarhus':'Søndergade 27, 8000 Aarhus C','Aalborg':'Algade 2, 9000 Aalborg','Lyngby':'Lyngby Hovedgade 43, 2800 Kgs. Lyngby','Odense':'Vestergade 4, 5000 Odense C','Fields':'Arne Jacobsens Allé 12, 2300 København S','Rødovre':'Rødovre Centrum 1, 2610 Rødovre'};
+const slotsWeekend=(times)=>[
+  {d:'Fre.',n:'21. nov',t:times[0].map((t,i)=>({t,left:[0,1,3][i]??4}))},
+  {d:'Lør.',n:'22. nov',t:times[1].map((t,i)=>({t,left:[4,2,0][i]??4}))},
+  {d:'Fre.',n:'28. nov',t:times[0].map(t=>({t,left:6}))},
+  {d:'Lør.',n:'29. nov',t:times[1].map(t=>({t,left:5}))},
+  {d:'Fre.',n:'5. dec',t:times[0].map(t=>({t,left:8}))},
+  {d:'Lør.',n:'6. dec',t:times[1].map(t=>({t,left:8}))},
+];
+/* flow: open = ingen tilmelding · signup = tilmelding · timeslot = book tid · (price>0 = betaling) */
+const EVENTS=[
+ {id:1,title:'Velkommen til Magasin Christmas Market',loc:'Kgs. Nytorv',place:'Hele huset',cats:['Jul'],flow:'open',member:false,price:0,date:'6. nov. – 23. dec. 2026',time:'I åbningstiden',img:IMG.market,
+  desc:['Findes der noget bedre på denne tid af året end et julemarked?','Hele julen inviterer vi til vores eventyrlige Christmas Market på Kongens Nytorv. Her kommer du i den helt rigtige julestemning under åben himmel, før eventyret fortsætter indenfor i Magasin.','Kom forbi, og lad dig fortrylle af julesmage, musik og den slags små overraskelser, der gør julen lidt mere eventyrlig.']},
+ {id:2,title:'Besøg vores H.C. Andersen Workshop',loc:'Kgs. Nytorv',place:'Børneafdelingen, 4. sal',cats:['Jul','Børn','Workshop'],flow:'signup',member:false,price:0,date:'Lør. 29. nov. 2026',time:'11:00 – 13:00',deadline:'27. nov. 2026',spots:6,cap:20,max:4,img:IMG.hca,
+  desc:['Få en kreativ pause fra juleindkøbene. Besøg vores H.C. Andersen Workshop på 3. etage, ved siden af det historiske kvistkammer, hvor han boede.','Her kan I fordybe jer i eventyrlige kreationer inspireret af forfatterens eventyr og skaberkraft: Tegne karakterer fra hans fortællinger, lave julehjerter, folde eventyrlige papirblomster og læse alle forfatterens eventyr. I kan også skrive rimende juledeviser – og med lidt juleheld i lommen, vinde et gavekort til 1000 kr. til Magasin.','Jeres kreationer kan I hænge op og lade blive en del af rummet, som hele julen vil udvikle sig til en udstilling – og selvfølgelig kan I også tage dem med jer hjem.','Vi glæder os til at se jer!']},
+ {id:3,title:'Clarins Pop-up – find nøglen til en skøn overraskelse',loc:'Kgs. Nytorv',place:'Skønhed, stueetagen',cats:['Skønhed'],flow:'open',member:true,price:0,date:'9. – 29. nov. 2026',time:'I åbningstiden',img:IMG.clarins,
+  desc:['En lille nøgle kan åbne op for skønne overraskelser … Træd ind i vores Clarins Pop-up, og gå på opdagelse i vores Concierge-univers, hvor skønhed, forkælelse og små overraskelser venter på dig.','Tag en nøgle med tilbage til Clarins-counteren, og se, om den åbner op for en gave til dig! Du kan blandt andet vinde en lysterapisession med vores myBlend LED-maske eller lækre produkter, der er lige til at putte i tasken og tage med hjem. Så længe lager haves.','Kom forbi, mærk lidt ekstra skønhedsmagi i hverdagen, og lad os forkæle dig. Måske er det netop din nøgle, der gemmer på en skøn overraskelse? Vi glæder os til at se dig!']},
+ {id:4,title:'Kom i julestemning i Mumi køkkenet',loc:'Kgs. Nytorv',place:'Køkkenet, 3. sal',cats:['Jul','Mad & Vin'],flow:'timeslot',member:true,price:95,date:'Fredage og lørdage i nov. og dec.',time:'Vælg et tidspunkt',max:2,img:IMG.mumi,
+  slots:slotsWeekend([['16:00 – 17:00','17:00 – 18:00','18:00 – 19:00'],['15:00 – 16:00','16:00 – 17:00','17:00 – 18:00']]),
+  desc:['Med Capionium gløggsmagning.','Tag en pause fra juleindkøbene og oplev den helt særlige Mumi jul på 3. sal, hvor Mumi køkkenet emmer af hygge, varme lys og ægte julestemning.','Hver weekend i november og december byder vi på en varm smagsprøve af Capioniums lækre gløgg, mens du går på opdagelse i årets fine Mumi julekollektion. Lad dig inspirere af de stemningsfulde designs, find nye favoritter til din samling og lad Mumi julens særlige stemning flytte med hjem eller måske den perfekte gave til én, du holder af.','Fredage kl. 16.00–19.00 og lørdage kl. 15.00–18.00.','Vi glæder os til at byde dig velkommen til hyggelige julestunder, gløgg og masser af Mumi magi på 3. sal i Mumi køkkenet.']},
+ {id:5,title:'Tag med Theodor på magisk juleeventyr',loc:'Aarhus',place:'Børneafdelingen, 2. sal',cats:['Jul','Børn'],flow:'signup',member:false,price:0,date:'Lør. 22. nov. 2026',time:'12:00 – 15:00',deadline:'21. nov. 2026',spots:14,cap:40,max:4,img:IMG.theodor,
+  desc:['Theodor tager børnene med på et magisk juleeventyr med historiefortælling, julesange og en lille overraskelse til alle.']},
+ {id:6,title:'Carolina Herrera Good Girl Masterclass',loc:'Kgs. Nytorv',place:'Beauty Lounge, stueetagen',cats:['Skønhed','Workshop'],flow:'signup',member:true,price:150,date:'Tor. 4. dec. 2026',time:'18:00 – 20:00',deadline:'2. dec. 2026',spots:3,cap:16,max:2,img:IMG.herrera,
+  desc:['Kom og besøg vores Carolina Herrera Good Girl-univers, og find ud af, hvilken Good Girl-duft der passer til dig eller dine kære.','Til masterclassen guider Carolina Herreras duftekspert dig gennem Good Girl-dufterne. Billetprisen inkluderer bobler, snacks og en goodiebag til en værdi af 400 kr.','Du kan også deltage i konkurrencen om et eksklusivt Carolina Herrera silketørklæde til en værdi af 2.400 kr.']},
+ {id:7,title:'Skønne overraskelser hver dag i december',loc:'Lyngby',place:'Hele huset',cats:['Jul','Skønhed'],flow:'open',member:true,price:0,date:'1. – 23. dec. 2026',time:'I åbningstiden',img:IMG.goodie,
+  desc:['Gør december lidt mere magisk med vores Beauty Lover julekalender! Hele måneden kan du kigge forbi Magasin og finde dagens låge og deltage i dagens konkurrence i appen om lækre præmier.','Bag hver låge gemmer der sig en ny overraskelse og en mulighed for at forkæle dig selv eller én, du holder af. Glæd dig til en december fyldt med skønhedsfavoritter, eksklusive præmier og masser af inspiration.']},
+ {id:8,title:'Armani Beauty Masterclass',loc:'Kgs. Nytorv',place:'Beauty Lounge, stueetagen',cats:['Skønhed','Workshop'],flow:'signup',member:false,price:250,date:'Fre. 28. nov. 2026',time:'17:00 – 19:00',deadline:'26. nov. 2026',spots:0,cap:12,max:2,img:null,ph:['#dc4067','Armani'],
+  desc:['Lær de nyeste makeup-teknikker fra Armani Beautys makeupartist. Billetprisen kan bruges på Armani Beauty-produkter samme dag.']},
+ {id:9,title:'Gør julens gaver personlige med Ralph Lauren',loc:'Lyngby',place:'Herre, 1. sal',cats:['Jul','Mode'],flow:'timeslot',member:false,price:0,date:'Weekender i december',time:'Vælg et tidspunkt',max:1,img:null,ph:['#14080c','Ralph Lauren'],
+  slots:slotsWeekend([['14:00 – 14:30','14:30 – 15:00','15:00 – 15:30'],['11:00 – 11:30','11:30 – 12:00','12:00 – 12:30']]),
+  desc:['Kom forbi Ralph Laurens jule-pop-up i Magasin, og oplev en særlig personaliseringsoplevelse. På udvalgte dage kan du få graveret din Ralph Lauren-duft med en personlig hilsen – en ekstra fin detalje, der gør julegaven helt unik.','Kig forbi, find din favoritduft, og lad os hjælpe dig med at gøre årets julegave lidt mere personlig.','Vi glæder os til at byde dig velkommen!']},
+ {id:10,title:'Julevinsmagning i Mad & Vin',loc:'Odense',place:'Mad & Vin, kælderen',cats:['Jul','Mad & Vin'],flow:'signup',member:false,price:195,date:'Fre. 5. dec. 2026',time:'18:30 – 20:30',deadline:'3. dec. 2026',spots:4,cap:30,max:4,img:null,ph:['#7a0925','Vinsmagning'],
+  desc:['Smag seks udvalgte vine til julemaden sammen med vores vinekspert. Inklusiv små smagsprøver fra delikatessen.']},
+ {id:11,title:'Få en særlig Mumi-gave og mød Mumitrolden',loc:'Kgs. Nytorv',place:'Køkkenet, 3. sal',cats:['Jul','Børn'],flow:'open',member:false,price:0,date:'Lør. 5. dec. 2026',time:'12:00 – 15:00',img:null,ph:['#507f70','Mumi'],
+  desc:['Kom i ægte julestemning på 3. etage, hvor Mumi Køkkenet er forvandlet til et hyggeligt juleunivers fyldt med varme lys, vintermagi og den stemningsfulde Mumi jul.','Nyd en varm smagsprøve på Capioniums lækre gløgg, mens du går på opdagelse i årets fine Mumi julekollektion. Lad dig inspirere af de stemningsfulde designs, find nye favoritter til din samling og måske den perfekte gave til én, du holder af.','Som noget helt særligt får vi besøg af Mumitrolden, som i tidsrummet kl. 12.00–15.00 vil sprede glæde blandt børn og barnlige sjæle og dele slik ud til de besøgende.','De første 50 gæster fra kl. 12.00 modtager desuden en særlig gave ved swipe i Goodie appen: et smukt Mumi glaskrus i gaveæske (så længe lager haves).']},
+ {id:12,title:'Kiehl’s hudanalyse og personlig rådgivning',loc:'Aalborg',place:'Skønhed, stueetagen',cats:['Skønhed'],flow:'timeslot',member:true,price:0,date:'Fredage og lørdage',time:'Vælg et tidspunkt',max:1,img:null,ph:['#17474b','Kiehl’s'],
+  slots:slotsWeekend([['12:00 – 12:30','13:00 – 13:30','14:00 – 14:30'],['10:30 – 11:00','11:30 – 12:00','12:30 – 13:00']]),
+  desc:['Få en gratis hudanalyse og personlig rådgivning hos en af Kiehl’s eksperter. Varer 30 minutter.']},
+ {id:14,title:'Lancôme makeup-workshop: Festlig julelook',loc:'Kgs. Nytorv',place:'Beauty Lounge, stueetagen',cats:['Skønhed','Workshop','Jul'],flow:'signup',member:true,price:175,date:'Tir. 25. nov. 2026',time:'17:30 – 19:00',deadline:'24. nov. 2026',spots:5,cap:12,max:2,img:null,ph:['#2b2b2b','Lancôme'],
+  desc:['Lær at skabe det perfekte festlook til julefrokosten sammen med Lancômes makeupartist.','Billetprisen inkluderer et Lancôme-produkt i fuld størrelse.']},
+ {id:13,past:true,title:'Kransebinding med Tage Andersen',loc:'Kgs. Nytorv',place:'Bolig, 3. sal',cats:['Workshop'],flow:'signup',member:false,price:295,date:'Lør. 8. nov. 2026',time:'10:00 – 12:00',img:null,ph:['#8d6b49','Kranse'],desc:['Bind din egen adventskrans.']},
+];
+/* Regel (Magasin): alle events med tilmelding – inkl. tidsbooking, betaling og venteliste – kræver Goodie-medlemskab */
+EVENTS.forEach(e=>{if(e.flow!=='open') e.member=true});
+/* Møde 25/11: Et åbent event (uden tilmelding) er altid for alle – ingen tjekker ved døren → ingen "kun Goodie" på åbne events */
+EVENTS.forEach(e=>{if(e.flow==='open') e.member=false});
+/* Møde 25/11: Udsolgt uden venteliste (indstilling pr. event) – Theodor som eksempel */
+Object.assign(EVENTS.find(e=>e.id===5),{spots:0,noWaitlist:true});
+/* Eventbilleder genereret med Figma Weave (Nano Banana 2.1) – uden logoer/figurer */
+Object.entries({8:'armani',9:'ralph',10:'vin',11:'mumi',12:'kiehls',13:'kranse',14:'lancome'}).forEach(([id,f])=>EVENTS.find(e=>e.id===+id).img='assets/events/'+f+'.jpg');
+/* Goodie-niveau (1–3 stjerner). Alle medlemmer har min. 1 stjerne → kun 2 og 3 vises som krav */
+EVENTS.find(e=>e.id===6).stars=2;
+EVENTS.find(e=>e.id===12).stars=3;
+/* Afmeldingsfrist for refusion – default: indtil eventet starter; kan sættes til fx 3, 5 eller 7 dage før */
+/* Betalt tidsbooking (eksempel): Mumi køkkenet – 95 kr. pr. person, refusion indtil 24 timer før den bookede tid */
+Object.assign(EVENTS.find(e=>e.id===4),{refundBy:'24 timer før din tid',refundRule:'24 timer før den bookede tid'});
+EVENTS.find(e=>e.id===4).desc.splice(1,0,'Billetten koster 95 kr. pr. person og inkluderer en varm gløgg fra Capionium og en lille julesmagsprøve fra køkkenet.');
+Object.assign(EVENTS.find(e=>e.id===6),{refundBy:'1. dec. 2026',refundRule:'3 dage før'});
+Object.assign(EVENTS.find(e=>e.id===8),{refundBy:'25. nov. 2026',refundRule:'3 dage før'});
+Object.assign(EVENTS.find(e=>e.id===10),{refundBy:'5. dec. 2026 kl. 18:30',refundRule:'indtil eventet starter'});
+Object.assign(EVENTS.find(e=>e.id===14),{refundBy:'22. nov. 2026',refundRule:'3 dage før',refundPassed:true}); // fristen er overskredet (i dag: 23. nov.)
+/* Kiehl's: få tider tilbage – viser "Kun X pladser tilbage" samlet på tværs af tider */
+EVENTS.find(e=>e.id===12).slots.forEach((d,i)=>d.t.forEach((t,j)=>t.left=[[0,1,0],[1,0,0],[0,2,1],[0,0,1],[1,0,0],[0,0,0]][i][j]));
+const EV=id=>EVENTS.find(e=>e.id===+id);
+
+/* ======================= State ======================= */
+const USER={first:'Sofie',last:'Jensen',email:'sofie.jensen@example.dk',phone:'20 45 60 85'};
+const SEED={
+  2:{status:'confirmed',tickets:2,ref:'EV-48213'},
+  4:{status:'confirmed',tickets:2,slot:'Fre. 28. nov · 16:00 – 17:00',ref:'EV-48377',paid:190},
+  8:{status:'waitlist',ref:'WL-1192'},
+  10:{status:'confirmed',tickets:2,ref:'EV-48502',paid:390},
+  13:{status:'confirmed',tickets:1,ref:'EV-47011'},
+  14:{status:'confirmed',tickets:1,ref:'EV-48544',paid:175},
+};
+const emptyF=()=>({locs:[],cats:[],price:[],type:[],mine:false});
+const CANCEL_SEED=[{id:5,status:'cancelled',tickets:2,ref:'EV-48120',cancelledAt:'18. nov. 2026'}];
+const KEY='mag-events-proto-v1';
+let S=load()||fresh();
+if(!S.f||!Array.isArray(S.f.locs)) S.f={locs:[],cats:[],price:[],type:[],mine:false};
+delete S.f.goodie; delete S.labelV;
+if((S.v||1)<2){ // v2: venteliste uden antal · afmeldte-fane · Goodie-niveau
+  for(const k in S.memberBookings){const b=S.memberBookings[k]; if(b.status==='waitlist') delete b.tickets; if(b.status==='cancelled'&&!b.tickets) delete S.memberBookings[k];}
+  S.stars=S.stars||2; S.v=2;
+}
+if(S.v<3){ // v3: afmeldingseksempler pr. event i stedet for toggle – 10 = med refusion, 14 = efter frist
+  delete S.afterDeadline;
+  [10,14].forEach(k=>{const b=S.memberBookings[k]; if(!b||b.status!=='confirmed') S.memberBookings[k]=JSON.parse(JSON.stringify(SEED[k]))});
+  S.v=3;
+}
+if(S.v<4){ // v4: afmeldte tilmeldinger gemmes i en log (MyMagasin → Afmeldte), så de bliver liggende ved gentilmelding
+  S.cancelLog=S.cancelLog||[];
+  for(const k in S.memberBookings){const b=S.memberBookings[k]; if(b.status==='cancelled'){S.cancelLog.push({id:+k,...b}); delete S.memberBookings[k];}}
+  if(!S.cancelLog.some(c=>c.id===5)) S.cancelLog.unshift(JSON.parse(JSON.stringify(CANCEL_SEED[0])));
+  S.v=4;
+}
+{const b4=S.memberBookings&&S.memberBookings[4]; if(b4&&b4.status==='confirmed'&&!b4.paid&&b4.tickets) b4.paid=b4.tickets*95;}
+S.cancelLog=S.cancelLog||[]; S.fm=S.fm||emptyF(); S.reminders=S.reminders||{};
+[S.bookings,S.memberBookings].forEach(m=>{for(const k in m){if(!(m[k].status in {confirmed:1,waitlist:1,cancelled:1}))delete m[k]}});
+function fresh(){return{loggedIn:false,bookings:{},memberBookings:JSON.parse(JSON.stringify(SEED)),f:{locs:[],cats:[],price:[],type:[],mine:false},cancelLog:JSON.parse(JSON.stringify(CANCEL_SEED)),fm:{locs:[],cats:[],price:[],type:[],mine:false},reminders:{},remind:false,mail:'signup',myTab:'up',payFail:false,stars:2,v:4,notes:false,mod:'4',drawer:null};}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({...S,drawer:null}))}catch(e){}}
+const B=()=>S.loggedIn?S.memberBookings:{};   // gæster kan ikke tilmelde sig – alle tilmeldinger kræver Goodie   // aktive tilmeldinger for nuværende "kunde"
+const bk=id=>B()[id];
+const active=b=>b&&b.status!=='cancelled';
+
+/* ======================= Helpers ======================= */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kr=n=>n.toLocaleString('da-DK')+' kr.';
+function imgStyle(ev){return ev.img?`style="background-image:url('${ev.img}')"`:`style="background:${ev.ph[0]}"`}
+function imgInner(ev){return ev.img?'':`<div class="ph" style="height:100%">${esc(ev.ph[1])}</div>`}
+const STATUS={
+  confirmed:{l:'Tilmeldt',c:'chip-success',i:I.check},
+  waitlist:{l:'På venteliste',c:'chip-info',i:I.hourglass},
+  cancelled:{l:'Afmeldt',c:'chip-neutral',i:''},
+};
+const statusChip=s=>`<span class="chip ${STATUS[s].c}">${STATUS[s].i}${STATUS[s].l}</span>`;
+/* Goodie-label: lås-label "Kun Goodie-medlemmer" på events der kræver Goodie (vises kun for gæster) */
+const LOW=10;   // "Kun X pladser tilbage" vises ved de sidste 10 pladser (konfigurerbart)
+const stars=n=>`<span class="gstars">${I.star.repeat(n)}</span>`;
+const lvlOk=ev=>!ev.stars||(S.loggedIn&&S.stars>=ev.stars);
+/* Ledige pladser – tidsbooking: samlet antal på tværs af alle tider (ikke pr. tid) */
+function spotsLeft(ev){ if(ev.slots) return ev.slots.reduce((n,d)=>n+d.t.reduce((m,t)=>m+t.left,0),0); return ev.spots; }
+const lowLine=ev=>{const n=spotsLeft(ev);return n&&n<=LOW?`<span style="color:var(--danger-700)">Kun ${n} ${n>1?'pladser':'plads'} tilbage</span>`:''};
+function memberChip(ev,cls='chip chip-dark'){
+  const lock=st=>`<span class="${cls}" ${st?`title="Kun for Goodie-medlemmer med ${ev.stars} stjerner eller flere" aria-label="Kun for Goodie-medlemmer med ${ev.stars} stjerner eller flere"`:''}>${I.lock}<span class="l-long">Kun Goodie-medlemmer</span><span class="l-short">Goodie</span>${st||''}</span>`;
+  /* Niveau-krav (2–3 stjerner) – møde 25/11: opfylder kunden kravet, vises "Åben for dig" med åben lås (bekræfter fordelen) */
+  if(ev.stars) return lvlOk(ev)?`<span class="${cls} is-open" title="Du opfylder kravet: Goodie-medlem med ${ev.stars} stjerner eller flere">${I.unlock}<span>Åben for dig</span></span>`:lock(stars(ev.stars));
+  /* Almindelige medlems-events: kun lås for gæster – medlemmer ved godt, at de er medlemmer */
+  if(!ev.member||S.loggedIn) return '';
+  return lock();
+}
+/* Møde 25/11: "Udsolgt"-badge på kortet – for både gæster og medlemmer (kan stå sammen med "Kun Goodie-medlemmer") */
+function soldChip(ev,cls='chip'){
+  if(ev.flow==='open'||active(bk(ev.id))||spotsLeft(ev)!==0) return '';
+  return `<span class="${cls} is-sold">Udsolgt</span>`;
+}
+function typeLine(ev){
+  if(ev.flow==='open') return 'Ingen tilmelding – mød bare op';
+  const b=bk(ev.id);
+  if(b&&b.status==='waitlist') return 'Udsolgt · Du står på ventelisten';
+  if(spotsLeft(ev)===0&&!active(b)) return ev.noWaitlist?'Udsolgt · Ingen venteliste':'Udsolgt · Skriv dig på venteliste';
+  let s = ev.flow==='timeslot'?'Book en tid':'Tilmelding';
+  s += ev.price? ` · ${kr(ev.price)}`:' · Gratis';
+  if(S.loggedIn&&!lvlOk(ev)&&!active(b)) return s+` · Kræver ${ev.stars} stjerner`;
+  if(!active(b)&&lowLine(ev)) s+=' · '+lowLine(ev);
+  return s;
+}
+function ctaLabel(ev){
+  const b=bk(ev.id);
+  if(active(b)) return 'Se din tilmelding';
+  if(ev.flow==='open'||(S.loggedIn&&!lvlOk(ev))) return 'Læs mere';
+  if(spotsLeft(ev)===0) return ev.noWaitlist?'Læs mere':'Skriv dig på venteliste';
+  if(ev.flow==='timeslot') return 'Book en tid';
+  return ev.price?'Læs mere og køb billet':'Læs mere og tilmeld';
+}
+function toast(msg){const t=document.getElementById('toast');t.innerHTML=I.check+' '+msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* ======================= Cards ======================= */
+/* Eventkort – Figma "Product Card" (node 27734:130013) */
+function card(ev,opts={}){
+  const b=bk(ev.id), booked=active(b);
+  const when=esc(ev.date)+(ev.time&&ev.flow!=='timeslot'&&ev.time!=='I åbningstiden'?', '+esc(ev.time):'');
+  return `<article class="ec" data-action="open" data-id="${ev.id}">
+    <div class="ec-img"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div>
+      <div class="ec-fn">
+        <div class="ec-tags">${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${booked?statusChip(b.status):''}</div>
+      </div>
+    </div>
+    <div class="ec-info">
+      <span class="ec-place">Magasin ${esc(ev.loc)}</span>
+      <div class="ec-tt"><h3>${esc(ev.title)}</h3>
+        <span class="ec-time">${I.clock}<span>${when}</span></span>
+        <span class="ec-type">${typeLine(ev)}</span></div>
+      ${opts.noBtn?'':`<button class="ec-btn"><span>${ctaLabel(ev)}</span>${I.arrow}</button>`}
+    </div></article>`;
+}
+function cardH(ev){
+  return `<article class="card card-h" data-action="open" data-id="${ev.id}">
+    <div class="card-img" ${imgStyle(ev)}>${imgInner(ev)}<div class="card-badges">${memberChip(ev)}${soldChip(ev)}</div></div>
+    <div class="card-body">
+      <div><span class="chip">${esc(ev.loc)}</span></div>
+      <h3 style="font-size:28px">${esc(ev.title)}</h3>
+      <div class="meta">${I.clock}${esc(ev.date)}</div>
+      <p class="small muted" style="margin:4px 0">${esc(ev.desc[0])}</p>
+      <div class="card-foot"><button class="btn btn-dark btn-sm">${ctaLabel(ev)} ${I.arrow}</button></div>
+    </div></article>`;
+}
+function tiny(ev){
+  const b=bk(ev.id);
+  return `<div class="tiny" data-action="open" data-id="${ev.id}">
+    <div class="card-img zoom-frame"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div></div>
+    <div class="tb"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">${esc(ev.loc)}</span>${active(b)?statusChip(b.status):''}</div>
+      <h4>${esc(ev.title)}</h4><div class="meta small">${I.clock}${esc(ev.date)}</div></div>
+    <button class="btn-sq" aria-label="Åbn">${I.arrow}</button></div>`;
+}
+
+/* ======================= Pages ======================= */
+/* ---- Filtre: samme mønster som PLP på magasin.dk (Filtrer + fremhævede filtre → drawer) ---- */
+const FG={
+  locs:{t:'Forretning',opts:LOCS.map(l=>[l,'Magasin '+l]),test:(e,v)=>v.includes(e.loc)},
+  cats:{t:'Kategori',opts:CATS.map(c=>[c,c]),test:(e,v)=>v.some(c=>e.cats.includes(c))},
+  type:{t:'Tilmelding',opts:[['open','Ingen tilmelding'],['signup','Tilmelding'],['timeslot','Book en tid']],test:(e,v)=>v.includes(e.flow)},
+};
+const HILITE=['locs','cats'];               // fremhævede filtre i rækken (som "Mærker", "Køn" på PLP)
+function applyF(f,except){
+  let l=EVENTS.filter(e=>!e.past);
+  if(f.mine&&except!=='mine') l=l.filter(e=>active(bk(e.id)));
+  for(const k in FG){ if(k!==except&&f[k].length) l=l.filter(e=>FG[k].test(e,f[k])); }
+  return l;
+}
+const nSel=f=>Object.keys(FG).reduce((n,k)=>n+f[k].length,0)+(f.mine?1:0);
+const box=on=>`<span class="cb ${on?'on':''}">${on?I.check:''}</span>`;
+const chev='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+const sliders='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h12M19 7h2M3 17h4M11 17h10"/><circle cx="17" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>';
+
+function pageEvents(){
+  const f=S.f;
+  const list=applyF(f);
+  const mineCount=EVENTS.filter(e=>!e.past&&active(bk(e.id))).length;
+  const guestMine=f.mine&&!S.loggedIn;
+  const chips=[];
+  if(f.mine) chips.push(['mine','','Tilmeldte events']);
+  for(const k in FG) f[k].forEach(v=>chips.push([k,v,FG[k].opts.find(o=>o[0]===v)[1]]));
+  return `<div class="container">
+    <div class="crumbs plp-crumbs"><a href="#/events">Forside</a> › <a href="#/events">Services</a> › Events</div>
+    <h1 class="plp-h1">Events</h1>
+    <div class="fsticky"><div class="fbar">
+      <button class="fbtn" data-action="fopen" data-v="root">${sliders} Filtrer${nSel(f)?` (${nSel(f)})`:''}</button>
+      ${HILITE.map(k=>`<button class="fbtn" data-action="fopen" data-v="${k}">${FG[k].t}${f[k].length?` (${f[k].length})`:''} ${chev}</button>`).join('')}
+      <button class="fbtn" data-action="fmine" aria-pressed="${f.mine}">${box(f.mine)} Tilmeldte events${S.loggedIn&&mineCount?` (${mineCount})`:''}</button>
+    </div></div>
+    ${chips.length?`<div class="achips"><button class="achip reset" data-action="reset-f">Nulstil</button>${chips.map(([k,v,l])=>`<button class="achip" data-action="frm" data-k="${k}" data-v="${v}">${esc(l)} ${I.close}</button>`).join('')}</div>`:''}
+    <div class="annot"><b>PLP-mønster fra magasin.dk:</b> "Filtrer" åbner "Tilpas"-draweren med alle filtergrupper; Forretning og Kategori er dropdown-filtre (som "Mærker"/"Køn" på PLP) med egen drawer; "Tilmeldte events" er et afkrydsningsfilter direkte i rækken.</div>
+    ${guestMine?'':`<div class="resbar"><span class="res">${list.length} resultater</span></div>`}
+    ${guestMine?`<div class="empty"><h3>Se dine tilmeldte events</h3><p class="muted">Log ind med din Goodie-profil for at se de events, du er tilmeldt.</p><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center"><button class="btn btn-green" data-action="login">Log ind som Goodie</button><button class="btn" data-action="signup-goodie">Bliv Goodie-medlem</button></div></div>`
+      :list.length?`<div class="grid">${list.map(e=>card(e)).join('')}</div>`
+      :`<div class="empty"><h3>${f.mine&&nSel(f)===1?'Du har ingen kommende tilmeldinger':'Ingen events matcher dine filtre'}</h3><p class="muted">${f.mine&&nSel(f)===1?'Find et event, du har lyst til at deltage i.':'Prøv at fjerne et filter. Vi tilføjer løbende nye events.'}</p><button class="btn btn-dark" data-action="reset-f">${f.mine&&nSel(f)===1?'Se alle events':'Nulstil filtre'}</button></div>`}
+    <div style="height:80px"></div></div>`;
+}
+
+/* Filter-drawer (Figma: Drawer (Filters) / magasin.dk "Tilpas") */
+function openFilter(view,scope='f'){
+  S.drawer={type:'filter',view,from:view,scope,draft:JSON.parse(JSON.stringify(S[scope])),_openedAt:Date.now()};
+  document.body.classList.add('open'); renderDrawer();
+}
+function dFilter(){
+  const d=S.drawer, f=d.draft, n=applyF(f).length;
+  const head=(title,back)=>`<div class="d-head">${back?`<button class="icbtn" data-action="fback2">${I.back}</button>`:'<span style="width:32px"></span>'}<h2>${title}</h2><button class="icbtn dark" data-action="close">${I.close}</button></div>`;
+  let body='';
+  if(d.view==='root'){
+    body=`${Object.keys(FG).map(k=>{const sel=f[k].map(v=>FG[k].opts.find(o=>o[0]===v)[1]).join(', ');
+        return `<button class="frow2" data-action="fview" data-v="${k}"><span><span class="fl">${FG[k].t}</span>${sel?`<span class="fsub">${esc(sel)}</span>`:''}</span>${I.next}</button>`}).join('')}
+      ${d.scope==='fm'?'':`<button class="frow2" data-action="ftoggle" data-k="mine"><span class="fl">Tilmeldte events</span>${box(f.mine)}</button>`}`;
+    return `${head('Tilpas',false)}<div class="d-body">${body}</div>
+      <div class="d-foot"><button class="btn" data-action="fclear" data-k="all">Nulstil</button><button class="btn btn-dark" data-action="fapply">Vis ${n} resultater</button></div>`;
+  }
+  const g=FG[d.view], base=applyF(f,d.view);
+  body=g.opts.map(([v,l])=>{const on=f[d.view].includes(v);const c=base.filter(e=>g.test(e,[v])).length;
+    return `<button class="frow2 ${c?'':'dim'}" data-action="ftoggle" data-k="${d.view}" data-v="${v}"><span class="fl">${esc(l)}</span><span class="cnt">${c}</span>${box(on)}</button>`}).join('');
+  return `${head(g.t,d.from==='root')}<div class="d-body">${body}</div>
+    <div class="d-foot"><button class="btn" data-action="fclear" data-k="${d.view}">Nulstil</button><button class="btn btn-dark" data-action="fapply">Vis ${n} resultater</button></div>`;
+}
+
+/* ======================= MyMagasin (møde 25/11) ======================= */
+const pct='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 18L18 6"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></svg>';
+const gift='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="9" width="17" height="11"/><path d="M3 9h18M12 9v11M12 9S10 4 7.5 5.2 9 9 12 9zm0 0s2-5 4.5-3.8S15 9 12 9z"/></svg>';
+const mstar='<span class="mstar">M*</span>';
+function myNav(on){
+  const up=EVENTS.filter(e=>!e.past&&active(bk(e.id))).length;
+  const a=(k,l,ic,href)=>`<a ${href?`href="${href}"`:''} class="${on===k?'on':''}">${ic}<span>${l}</span>${k==='events'&&up?`<span class="count">${up}</span>`:''}</a>`;
+  return `<nav class="side"><a class="back" href="#/events">${I.back} Tilbage</a>
+    <h2>${USER.first} ${USER.last}</h2><p class="lvl">Goodie ${stars(S.stars)}</p>
+    <h6>Om mig</h6><div class="grp">
+      ${a('overview','Oversigt',mstar,'#/overview')}${a('goodies','Mine Goodies',I.ticket)}${a('wish','Mine ønskelister',I.heart)}${a('offers','Mine tilbud',pct)}${a('orders','Mine køb',I.bag)}${a('events','Mine events',I.cal,'#/mypage')}${a('profile','Min profil',I.user)}</div>
+    <h6>Mere</h6><div class="grp">
+      ${a('services','Services',I.info)}${a('giftcard','Gavekort',gift)}${a('goodie','Om Goodie',mstar)}${a('terms','Vilkår',I.ticket)}${a('faq','FAQ',I.info)}<a data-action="logout">${I.arrow}<span>Log ud</span></a></div>
+    <p class="id">ID: 10482736</p></nav>`;
+}
+const myLogin=()=>`<div class="container" style="padding:60px 0 100px;max-width:520px">
+    <h1 style="font-size:40px;margin-bottom:12px">MyMagasin</h1><p>Log ind med din Goodie-profil for at se dine tilmeldte events.</p>
+    <button class="btn btn-green btn-block" data-action="login">Log ind som Goodie</button></div>`;
+const upcoming=()=>EVENTS.filter(e=>!e.past&&active(bk(e.id)));
+const whenOf=(ev,b)=>esc(b.slot||ev.date+(ev.flow!=='timeslot'&&ev.time?', '+ev.time:''));
+/* Overblik: "Mine events"-modul i samme stil som "Mine Goodies" (vouchers) – kun kommende */
+function pageOverview(){
+  if(!S.loggedIn) return myLogin();
+  const up=upcoming();
+  return `<div class="container"><div class="my">${myNav('overview')}<section class="ov">
+    <h1 class="ov-h">Hej, ${USER.first}</h1>
+    <div class="ov-lvl"><span class="small" style="font-weight:500">Dit niveau</span><div class="ov-lvl-t">Goodie ${stars(S.stars)}</div><p class="small" style="margin:0">Du har ${S.stars} ${S.stars>1?'stjerner':'stjerne'}. Du optjener stjernepoint, når du handler hos Magasin.</p></div>
+    <div class="ov-app"><div class="ov-app-img" style="background-image:url('${IMG.goodie}')"></div><div><h3>Alt det bedste findes i vores app</h3><p class="small" style="margin:0">Goodie appen er nøglen til ekstra forkælelse i Magasin. Se i appen, hvad du har tilgængeligt lige nu.</p></div></div>
+    <h2 class="ov-h2">Du har 1 aktiv Goodie</h2>
+    <div class="ov-row"><div class="ov-thumb vouch"><span>20%</span></div><div class="tx"><span class="ov-lbl">Voucher</span><h4>20% på UGG</h4><span class="small muted">Udløber om 2 dage</span></div>${I.next}</div>
+    <a class="link link-green ov-more">Se alle dine Goodies</a>
+    <h2 class="ov-h2">${up.length?`Du har ${up.length} ${up.length>1?'kommende events':'kommende event'}`:'Mine events'}</h2>
+    ${up.length?`<div class="ov-bk">${up.map(ev=>bkRow(ev,bk(ev.id))).join('')}</div>`
+      :`<div class="ov-row ov-empty"><div class="tx"><h4>Du har ingen kommende events</h4><span class="small muted">Find workshops, smagninger og events i dit varehus.</span></div></div>`}
+    <a class="link link-green ov-more" href="#/mypage">${up.length?'Se alle dine events':'Se alle events'}</a>
+    <div class="annot"><b>Møde 25/11:</b> På Overblik vises et "Mine events"-modul med samme kort som under Mine events – kun kommende tilmeldinger (alle, ingen begrænsning – det er en edge case at have mange). Link til Mine events, hvor også tidligere/afmeldte og alle events ligger.</div>
+  </section></div></div>`;
+}
+function pageMy(){
+  if(!S.loggedIn) return myLogin();
+  const up=upcoming();
+  const past=EVENTS.filter(e=>e.past&&active(bk(e.id)));
+  const canc=S.cancelLog.slice().reverse().filter(c=>EV(c.id));
+  const tabs={up:['Kommende',up.map(e=>[e,bk(e.id)]),'Ingen kommende events','Når du tilmelder dig et event, kan du se det her.'],past:['Tidligere',past.map(e=>[e,bk(e.id)]),'Ingen tidligere events','Her kan du se de events, du har deltaget i.'],cancelled:['Afmeldte',canc.map(c=>[EV(c.id),c]),'Ingen afmeldte events','Afmelder du et event, kan du se det her – også om du har fået pengene tilbage.']};
+  const tab=tabs[S.myTab]?S.myTab:'up', list=tabs[tab][1];
+  const f=S.fm, all=applyF(f);
+  const chips=[]; for(const k in FG) f[k].forEach(v=>chips.push([k,v,FG[k].opts.find(o=>o[0]===v)[1]]));
+  return `<div class="container"><div class="my">${myNav('events')}
+    <section>
+      <h1 style="font-size:40px;margin:30px 0 16px">Mine events</h1>
+      <div class="annot"><b>Møde 25/11:</b> Øverst "Mine events" (Kommende, Tidligere, Afmeldte) – herunder sektionen "Alle events" med samme oversigt som eventsiden, så kunden kan tilmelde sig uden at forlade MyMagasin. Linket "Se alle events" er fjernet. Afmeldte fungerer som en log: en afmelding bliver liggende, også hvis kunden tilmelder sig igen (ny reference). Redigering ændrer ikke referencen og ryger ikke ind under Afmeldte.</div>
+      <div class="tabs">${Object.entries(tabs).map(([k,[l,a]])=>`<button class="tab ${tab===k?'on':''}" data-action="mytab" data-v="${k}">${l} (${a.length})</button>`).join('')}</div>
+      ${list.length?list.map(([e,b])=>bkRow(e,b)).join(''):`<div class="empty"><h3>${tabs[tab][2]}</h3><p class="muted">${tabs[tab][3]}</p></div>`}
+      <div class="sec-split"></div>
+      <h2 class="ov-h2">Alle events</h2>
+      <div class="fbar" style="margin-bottom:12px">
+        <button class="fbtn" data-action="fopen" data-v="root" data-s="fm">${sliders} Filtrer${nSel(f)?` (${nSel(f)})`:''}</button>
+        ${HILITE.map(k=>`<button class="fbtn" data-action="fopen" data-v="${k}" data-s="fm">${FG[k].t}${f[k].length?` (${f[k].length})`:''} ${chev}</button>`).join('')}
+      </div>
+      ${chips.length?`<div class="achips"><button class="achip reset" data-action="reset-f" data-s="fm">Nulstil</button>${chips.map(([k,v,l])=>`<button class="achip" data-action="frm" data-s="fm" data-k="${k}" data-v="${v}">${esc(l)} ${I.close}</button>`).join('')}</div>`:''}
+      <div class="resbar"><span class="res">${all.length} resultater</span></div>
+      ${all.length?`<div class="grid">${all.map(e=>card(e)).join('')}</div>`:`<div class="empty"><h3>Ingen events matcher dine filtre</h3><p class="muted">Prøv at fjerne et filter.</p><button class="btn btn-dark" data-action="reset-f" data-s="fm">Nulstil filtre</button></div>`}
+      <div class="annot"><b>Alle events i MyMagasin:</b> Samme komponent som eventsiden (spejles, så den kun skal vedligeholdes ét sted) – filtre: Forretning og Kategori. "Tilmeldte events"-filteret er fjernet her, da tilmeldte events vises øverst og har "Tilmeldt"-badge.</div>
+    </section></div></div>`;
+}
+function bkRow(ev,b){
+  const isPast=ev.past;
+  let acts='';
+  if(!isPast&&b.status==='confirmed') acts=`<button class="btn btn-sm" data-action="ics">${I.cal} Tilføj til kalender</button><button class="link" data-action="editbk" data-id="${ev.id}">Redigér</button>`;
+  if(b.status==='waitlist') acts=`<button class="link" data-action="cancel" data-id="${ev.id}">Forlad venteliste</button>`;
+  return `<div class="bk ${b.status==='cancelled'||isPast?'cancelled':''}">
+    <div class="card-img" ${imgStyle(ev)} data-action="open" data-id="${ev.id}">${imgInner(ev)}</div>
+    <div>${isPast&&b.status!=='cancelled'?'<span class="chip chip-neutral">Afholdt</span>':statusChip(b.status)}
+      <h3 data-action="open" data-id="${ev.id}">${esc(ev.title)}</h3>
+      <div class="facts" style="margin:0;gap:6px">
+        <div>${I.cal}<span>${whenOf(ev,b)}</span></div>
+        <div>${I.pin}<span>Magasin ${esc(ev.loc)} · ${esc(ev.place)}</span></div>
+        ${b.status==='waitlist'?`<div>${I.hourglass}<span>Du får besked, hvis der bliver en plads ledig · Ref. ${b.ref}</span></div>`
+          :b.tickets?`<div>${I.ticket}<span>${b.tickets} ${b.tickets>1?'billetter':'billet'}${ev.price?' · '+kr(b.paid||ev.price*b.tickets)+' betalt':''} · Ref. ${b.ref}</span></div>`:''}
+        ${b.status==='cancelled'?`<div>${I.info}<span>Afmeldt ${b.cancelledAt||'i dag'}${ev.price?(b.refunded?` · ${kr(b.refunded)} refunderet`:' · Ikke refunderet'):''}</span></div>`:''}
+      </div></div>
+    <div class="acts">${acts}</div></div>`;
+}
+
+/* ======================= Landingsside for et event =======================
+   Selvstændig side pr. event (delingslink, nyhedsbreve, SEO). Samme indhold og handlinger som sidepanelet;
+   tilmelding/booking åbner sidepanelets flow ovenpå siden. */
+const lpId=()=>{const m=route().match(/^event\/(\d+)/);return m?+m[1]:null};
+function pageEvent(){
+  const ev=EV(lpId());
+  if(!ev) return `<div class="container"><div class="empty" style="margin:60px 0"><h3>Eventet findes ikke</h3><p class="muted">Det kan være afholdt eller fjernet.</p><a class="btn btn-dark" href="#/events">Se alle events ${I.arrow}</a></div></div>`;
+  const {banner,body,foot}=detailParts(ev);
+  const rel=EVENTS.filter(e=>!e.past&&e.id!==ev.id&&(e.loc===ev.loc||e.cats.some(c=>ev.cats.includes(c)))).slice(0,4);
+  return `<div class="container">
+    <div class="crumbs plp-crumbs"><a href="#/events">Forside</a> › <a href="#/events">Services</a> › <a href="#/events">Events</a> › ${esc(ev.title)}</div>
+    <div class="lp">
+      <div class="lp-img" ${imgStyle(ev)}>${imgInner(ev)}</div>
+      <aside class="lp-info">
+        ${banner}
+        ${badgesHtml(ev)}
+        <div class="lp-tt"><h1>${esc(ev.title)}</h1><button class="icbtn" data-action="share" data-id="${ev.id}" aria-label="Del event">${I.share}</button></div>
+        ${factsHtml(ev)}
+        ${body}
+        ${foot?`<div class="lp-cta">${foot}</div>`:''}
+      </aside>
+    </div>
+    <div class="lp-desc"><h2>Om eventet</h2>${ev.desc.map(p=>`<p>${esc(p)}</p>`).join('')}${faqHtml(ev)}</div>
+    <div class="annot"><b>Landingsside (26/11):</b> Hvert event får sin egen side, som delingslinket peger på – kan også bruges i nyhedsbreve, trigger-mails og på sociale medier. Samme indhold og logik som sidepanelet (badges, fakta, Goodie-krav, udsolgt/venteliste). Tilmelding, booking, redigering og login åbner sidepanelet ovenpå siden, så flowet er det samme overalt. Fra eventoversigten åbner et event stadig sidepanelet.</div>
+    ${rel.length?`<section class="mod" style="padding-top:24px"><div class="mod-head"><div><h2>Andre events</h2><p>I samme varehus eller samme kategori.</p></div><a class="link" href="#/events">Se alle events</a></div><div class="grid">${rel.map(e=>card(e)).join('')}</div></section>`:''}
+    <div style="height:80px"></div></div>`;
+}
+/* Delingsark – på mobil bruges telefonens indbyggede delingsmenu (Web Share API) */
+/* Variant (prototype-panelet): delingslinket åbner enten eventoversigten med sidepanelet foldet ud (standard) eller eventets landingsside */
+const shareMode=()=>S.shareMode||'drawer';
+const evHash=id=>shareMode()==='page'?'#/event/'+id:'#/events?event='+id;
+const evUrl=id=>location.origin+location.pathname+evHash(id);
+const evParam=()=>new URLSearchParams((location.hash.split('?')[1])||'').get('event');
+/* Delingsark – samme opbygning som login-overlayet: ark der glider op i bunden af sidepanelet */
+function shareSheet(ev){
+  return `<button class="icbtn d-sheet-x" data-action="shareclose" aria-label="Luk">${I.close}</button>
+    <h4 id="shareT">${I.share} Del event</h4>
+    <p class="small" style="margin:0 0 16px">Send <b>${esc(ev.title)}</b> til en, du gerne vil have med. Linket åbner ${shareMode()==='page'?'eventets side':'eventet på magasin.dk'}.</p>
+    <div class="share-lbl">Kopiér link</div>
+    <div class="share-url"><span>${esc(evUrl(ev.id))}</span><button class="btn btn-green" data-action="sharecopy" data-id="${ev.id}">Kopiér</button></div>
+        <div class="share-lbl">Eller del via</div>
+    <div style="display:grid;gap:8px">
+      <button class="btn btn-block" data-action="sharevia" data-v="e-mail">Del via e-mail ${I.mail}</button>
+      <button class="btn btn-block" data-action="sharevia" data-v="SMS">Del via SMS ${I.sms}</button>
+      <button class="btn btn-block" data-action="sharevia" data-v="Facebook">Del på Facebook ${I.fb}</button>
+    </div>
+<div style="text-align:center;margin-top:12px"><button class="link" data-action="shareclose">Annullér</button></div>
+    <div class="annot" style="display:${S.notes?'block':'none'}"><b>Del event:</b> Samme opbygning som login-overlayet. Linket peger på ${shareMode()==='page'?'eventets landingsside':'eventoversigten med sidepanelet foldet ud'} (vælges i prototype-panelet). På mobil åbner vi telefonens indbyggede delingsmenu (Web Share API) i stedet for dette ark.</div>`;
+}
+const shareOverlay=ev=>`<div class="d-overlay" data-action="shareclose"><div class="d-sheet" role="dialog" aria-modal="true" aria-labelledby="shareT" data-action="noop">${shareSheet(ev)}</div></div>`;
+function openShare(id){
+  const d=S.drawer;
+  if(d&&d.id===+id&&d.view==='detail'){ d.shareAsk=true; renderDrawer(); return; }   /* i sidepanelet: overlay inde i panelet */
+  const m=document.getElementById('modal');   /* på landingssiden: samme ark i bunden af skærmen */
+  m.innerHTML=`<div class="m-ov" data-action="shareclose"><div class="d-sheet m-sheet" role="dialog" aria-modal="true" aria-labelledby="shareT" data-action="noop">${shareSheet(EV(id))}</div></div>`;
+  m.classList.add('on');
+}
+function closeShare(){const m=document.getElementById('modal'); m.classList.remove('on'); m.innerHTML=''; if(S.drawer&&S.drawer.shareAsk){S.drawer.shareAsk=false; renderDrawer();}}
+
+
+/* ======================= Trigger-mails (møde 25/11) ======================= */
+const MAILS=[
+  ['signup','Tilmeldingsbekræftelse',10],
+  ['booking','Bookingbekræftelse (tidsbooking)',4],
+  ['edit','Booking redigeret – flere billetter',10,1],
+  ['editless','Booking redigeret – færre billetter',10,1],
+  ['editlate','Booking redigeret – færre, efter fristen',14,1],
+  ['edittime','Booking redigeret – nyt tidspunkt',4,1],
+  ['cancel','Afmeldingsbekræftelse',10],
+  ['remind','Påmindelse',2],
+  ['wl','På venteliste',8],
+  ['wlfree','Ny plads ledig (venteliste)',8],
+];
+function mailHtml(k){
+  const m=MAILS.find(x=>x[0]===k)||MAILS[0], ev=EV(m[2]);
+  const where=`Magasin ${esc(ev.loc)}, ${esc(ev.place)}<br><span class="muted">${ADDR[ev.loc]}</span>`;
+  const maps=`<a class="link" href="#" onclick="return false">${I.pin} Find vej i Google Maps</a>`;
+  const about=`<h3 class="sec-title" style="margin-top:22px">Om eventet</h3><p class="small">${esc(ev.desc[0])}</p>`;
+  const sum=rows=>`<div class="summary">${rows.map(([a,b])=>`<div class="row"><span>${a}</span><b style="text-align:right">${b}</b></div>`).join('')}</div>`;
+  let subj='',h='',intro='',body='',cta='';
+  if(k==='signup'){subj=`Du er tilmeldt: ${ev.title}`;h='Tak for din tilmelding';intro=`Hej ${USER.first}, vi glæder os til at se dig til ${esc(ev.title)}.`;
+    body=sum([['Hvornår',esc(ev.date+', '+ev.time)],['Hvor',where],['Billetter','2 · '+kr(390)+' betalt'],['Reference','EV-48502']])+`<p class="small" style="margin:12px 0 0"><b>Afmelding:</b> Afmelder du dig senest ${ev.refundBy}, får du hele beløbet tilbage. Derefter refunderes billetter ikke.</p>`;
+    cta=`<a class="btn btn-dark">Se eller redigér din tilmelding</a><a class="btn">${I.cal} Tilføj til kalender</a>`;}
+  if(k==='booking'){subj=`Din tid er booket: ${ev.title}`;h='Din tid er booket';intro=`Hej ${USER.first}, her er din booking.`;
+    body=sum([['Tidspunkt','Fre. 28. nov · 16:00 – 17:00'],['Hvor',where],['Billetter','2 · '+kr(190)+' betalt'],['Reference','EV-48377']])+`<p class="small" style="margin:12px 0 0"><b>Afmelding:</b> Afmelder du dig senest 24 timer før din tid, får du hele beløbet tilbage.</p><p class="small muted" style="margin:10px 0 0">Forskellen fra tilmeldingsbekræftelsen: ved tidsbooking vises det valgte tidspunkt – ikke kun eventet.</p>`;
+    cta=`<a class="btn btn-dark">Se eller redigér din booking</a><a class="btn">${I.cal} Tilføj til kalender</a>`;}
+  /* Booking redigeret – fire varianter afhængig af ændringen. Referencen er altid den samme */
+  if(k.startsWith('edit')){subj=`Din booking er opdateret: ${ev.title}`;h='Din booking er opdateret';intro=`Hej ${USER.first}, vi har registreret dine ændringer til <b>${esc(ev.title)}</b>. Din reference er den samme.`;
+    const evRow=['Event',esc(ev.title)], whenRow=['Hvornår',esc(ev.date+', '+ev.time)], whereRow=['Hvor',where];
+    if(k==='edit') body=sum([evRow,whenRow,whereRow,['Billetter','<s class="chg-old">2</s>3'],['Betalt for ekstra billet',kr(195)],['Reference','EV-48502']])+`<p class="small" style="margin:12px 0 0">Du har nu 3 billetter. Afmelder du dig senest ${ev.refundBy}, får du hele beløbet tilbage.</p>`;
+    if(k==='editless') body=sum([evRow,whenRow,whereRow,['Billetter','<s class="chg-old">3</s>2'],['Refusion',kr(195)],['Reference','EV-48502']])+`<p class="small" style="margin:12px 0 0">${kr(195)} refunderes til dit betalingskort inden for 3–5 hverdage.</p>`;
+    if(k==='editlate') body=sum([evRow,whenRow,whereRow,['Billetter','<s class="chg-old">2</s>1'],['Refusion','Refunderes ikke'],['Reference','EV-48544']])+`<p class="small" style="margin:12px 0 0">Du har ændret din booking efter fristen for refusion (${ev.refundBy}), så beløbet for den afmeldte billet refunderes ikke. Pladsen går videre til andre.</p>`;
+    if(k==='edittime') body=sum([evRow,['Tidspunkt','<s class="chg-old">Fre. 28. nov · 16:00 – 17:00</s>Lør. 29. nov · 15:00 – 16:00'],['Hvor',where],['Billetter','2'],['Reference','EV-48377']])+`<p class="small" style="margin:12px 0 0">Begge billetter er flyttet til det nye tidspunkt.</p>`;
+    cta=`<a class="btn btn-dark">Se din tilmelding</a><a class="btn">${I.cal} Opdatér i kalender</a>`;}
+  if(k==='cancel'){subj=`Du er afmeldt: ${ev.title}`;h='Du er afmeldt';intro=`Hej ${USER.first}, vi har modtaget din afmelding. Din plads går videre til andre.`;
+    body=sum([['Event',esc(ev.title)],['Hvornår',esc(ev.date+', '+ev.time)],['Billetter','2'],['Refusion',kr(390)],['Reference','EV-48502']])+`<p class="small" style="margin:12px 0 0">Beløbet sendes tilbage til dit betalingskort inden for 3–5 hverdage.</p><div class="mail-var"><b>Variant – efter fristen:</b> "Du afmeldte dig efter fristen for refusion (${EV(14).refundBy}), så beløbet refunderes ikke."<br><b>Variant – gratis event:</b> ingen refusionslinje.</div>`;
+    cta=`<a class="btn btn-dark">Find et nyt event</a>`;}
+  if(k==='remind'){subj=`I morgen: ${ev.title}`;h='Vi ses i morgen';intro=`Hej ${USER.first}, en lille påmindelse om dit event i morgen.`;
+    body=sum([['Hvornår',esc(ev.date+', '+ev.time)],['Hvor',where],['Billetter','2'],['Reference','EV-48213']])+`<p style="margin:12px 0 0">${maps}</p>`+about+`<div class="mail-var"><b>Godt at vide:</b> Praktisk info (fx "kom med renset hud uden makeup") skrives i eventbeskrivelsen og vises her.<br><b>Variant – event uden tilmelding (tillæg):</b> "Christmas Market åbner i morgen" – sendes efter eventets startdato, hvis kunden har bedt om en påmindelse.</div>`;
+    cta=`<a class="btn btn-dark">Se din tilmelding</a>`;}
+  if(k==='wl'){subj=`Du er på ventelisten: ${ev.title}`;h='Du er på ventelisten';intro=`Hej ${USER.first}, du er skrevet på ventelisten til ${esc(ev.title)}.`;
+    body=sum([['Hvornår',esc(ev.date+', '+ev.time)],['Hvor',where],['Reference','WL-1192']])+`<p class="small" style="margin:12px 0 0">Du er ikke garanteret en plads. Bliver der en plads ledig, giver vi besked på e-mail og SMS – først til mølle.</p>`;
+    cta=`<a class="btn">Forlad ventelisten</a>`;}
+  if(k==='wlfree'){subj=`Der er en plads ledig: ${ev.title}`;h='Der er en plads ledig';intro=`Hej ${USER.first}, der er blevet en plads ledig til ${esc(ev.title)}, som du står på venteliste til.`;
+    body=sum([['Hvornår',esc(ev.date+', '+ev.time)],['Hvor',where],['Pris',kr(ev.price)+' pr. person']])+`<p class="small" style="margin:12px 0 0"><b>Skynd dig</b> – pladsen går til den første på ventelisten, der tilmelder sig.</p>`;
+    cta=`<a class="btn btn-green">Tilmeld dig nu ${I.arrow}</a>`;}
+  return {subj,html:`<div class="mail"><div class="mail-hd"><img src="assets/logo.svg" alt="Magasin"></div><div class="mail-hero" ${imgStyle(ev)}>${imgInner(ev)}</div>
+    <div class="mail-bd"><h1>${h}</h1><p>${intro}</p>${body}<div class="mail-cta">${cta}</div>${k!=='remind'&&k!=='cancel'&&k!=='wlfree'?`<p style="margin:0">${maps}</p>`:''}${k==='signup'||k==='booking'?about:''}</div>
+    <div class="mail-ft">Du modtager denne mail, fordi du har en tilmelding til et event hos Magasin. Magasin du Nord · Kongens Nytorv 13 · 1095 København K<br><a class="link" style="font-size:12px">Kundeservice</a> · <a class="link" style="font-size:12px">MyMagasin</a></div></div>`};
+}
+function pageMails(){
+  const k=S.mail||'signup', m=mailHtml(k);
+  return `<div class="container"><div class="mails">
+    <nav class="mail-nav"><h2 style="font-size:28px;margin:0 0 14px">Trigger-mails</h2>${MAILS.map(([id,l,,sub],n)=>`${sub&&!MAILS[n-1][3]?'<span class="mail-grp">Booking redigeret</span>':''}<button class="${id===k?'on':''} ${sub?'sub':''}" data-action="mail" data-v="${id}">${I.mail} ${sub?(x=>x[0].toUpperCase()+x.slice(1))(l.replace('Booking redigeret – ','')):l}</button>`).join('')}
+      <p class="small muted" style="margin-top:16px">Aflysning af et event håndteres manuelt (eventteamet trækker listen og skriver ud) – derfor ingen trigger-mail.</p></nav>
+    <section><div class="annot" style="display:block"><b>Møde 25/11 – indholdsforslag:</b> Mailene sendes via Omnio (Arcade) i første fase – layoutet afhænger af mulighederne i Omnio-pluginet. Her vises, hvad vi gerne vil have med i hver mail: eventbeskrivelse, link til Google Maps, refusionsfrist (i bekræftelsen) og samme reference ved redigering. Fase 2: trigger-kommunikation flyttes til Bloomreach.</div>
+      <div class="mail-wrap"><div class="mail-meta"><b>Fra:</b> Magasin &lt;events@magasin.dk&gt;<br><b>Emne:</b> ${esc(m.subj)}</div>${m.html}</div></section>
+  </div></div>`;
+}
+
+function pageJul(){
+  const n=S.mod;
+  const jul=EVENTS.filter(e=>!e.past&&e.cats.includes('Jul'));
+  const beauty=EVENTS.filter(e=>!e.past&&e.cats.includes('Skønhed'));
+  let mod='';
+  if(n==='tiny') mod=`<div class="tinygrid">${beauty.slice(0,4).map(tiny).join('')}</div>`;
+  else{
+    const k=+n, list=jul.slice(0,k);
+    if(k===1){const e=list[0];mod=`<div class="feat" data-action="open" data-id="${e.id}"><div class="card-img" ${imgStyle(e)}>${imgInner(e)}</div><div class="fb"><div><span class="chip">${esc(e.loc)}</span></div><h3>${esc(e.title)}</h3><div class="meta">${I.clock}${esc(e.date)}</div><p>${esc(e.desc[0])}</p><div><button class="btn btn-dark">${ctaLabel(e)} ${I.arrow}</button></div></div></div>`;}
+    else if(k===2) mod=`<div class="two">${list.map(cardH).join('')}</div>`;
+    else if(k===3) mod=`<div class="g3">${list.map(e=>card(e,{boxed:true})).join('')}</div>`;
+    else mod=`<div class="car"><div class="track" id="track">${list.map(e=>card(e,{boxed:true})).join('')}</div></div>`;
+  }
+  const many=n!=='tiny'&&+n>=4;
+  return `<section class="hero"><div class="container"><h1>Jul i Magasin</h1><p>Find gaverne, pynten og julestemningen – og oplev årets juleevents i vores varehuse.</p></div></section>
+  <div class="container"><div class="placeholder">Page Designer-indhold (fx M23 Product Carousel)</div></div>
+  <section class="mod"><div class="container">
+    <div class="mod-head"><div><h2>${n==='tiny'?'Events i Skønhed':'Juleevents i Magasin'}</h2><p>${n==='tiny'?'Masterclasses, konsultationer og pop-ups i Skønhed.':'Workshops, smagninger og hygge for hele familien.'}</p></div>
+      <div style="display:flex;gap:16px;align-items:center"><a class="link" href="#/events">Se alle events</a>${many?`<div class="arrows"><button class="btn-sq" data-action="scroll" data-v="-1">${I.back}</button><button class="btn-sq" data-action="scroll" data-v="1">${I.next}</button></div>`:''}</div></div>
+    ${mod}
+    <div class="mod-ctrl"><b>Prototype – eventmodul:</b> vis med
+      ${['1','2','3','4','8','tiny'].map(v=>`<button class="${S.mod===v?'on':''}" data-action="mod" data-v="${v}">${v==='tiny'?'Tiny-liste (kategori)':v+' '+(v==='1'?'event':'events')}</button>`).join('')}
+      <span>· 1 = feature, 2 = horisontale kort, 3 = grid, 4+ = karrusel. Mobil: altid slider.</span></div>
+    <div class="annot"><b>Note:</b> Klik på et event åbner draweren direkte på siden, så kunden kan tilmelde sig uden at forlade kunderejsen (aftalt på mødet).</div>
+  </div></section>
+  <div class="container"><div class="placeholder">Page Designer-indhold</div></div>`;
+}
+
+
+/* ======================= PDP ======================= */
+const PIMG='https://www.magasin.dk/dw/image/v2/BFCS_PRD/on/demandware.static/-/Sites-mdn-master-catalog/default/';
+const PDP_IMGS=['dw8f29a73e/large2/8F/8411061113851.jpg','dw29a3c495/large2/D2/8411061113851_2.jpg','dwbc4a11a0/large2/02/8411061113851_3.jpg','dwe5594bbd/large2/05/8411061113851_4.jpg'].map(p=>PIMG+p+'?sw=850&sh=1020&sm=fit&sfrm=jpg');
+const PDP_MATCH={brand:{id:6,lbl:'Event med Carolina Herrera'},cat:{id:12,lbl:'Event i Skønhed'},none:null};
+function pdpEvent(){
+  const m=PDP_MATCH[S.pdpMatch||'brand']; if(!m) return '';
+  const ev=EV(m.id), b=bk(ev.id);
+  const sub = active(b)?''
+    : spotsLeft(ev)===0?'<span class="sub">Udsolgt · venteliste</span>'
+    : `<span class="sub">${typeLine(ev)}</span>`;
+  return `<div class="pdp-ev"><span class="tab-lbl">${m.lbl}</span>
+    <div class="tiny" data-action="open" data-id="${ev.id}">
+      <div class="card-img zoom-frame"><div class="zoom-media" ${imgStyle(ev)}>${imgInner(ev)}</div></div>
+      <div class="tb"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">${esc(ev.loc)}</span>${active(b)?statusChip(b.status):memberChip(ev)}</div>
+        <h4>${esc(ev.title)}</h4>
+        <div class="meta small">${I.clock}${esc(ev.date)}${ev.flow!=='timeslot'&&ev.time?', '+esc(ev.time):''}</div>
+        ${sub}</div>
+      <button class="btn-sq" aria-label="Se event">${I.arrow}</button></div></div>`;
+}
+function pagePdp(){
+  const truck='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>';
+  const box='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></svg>';
+  const ret='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 7H4V2M4.5 7A8 8 0 1 1 4 12"/></svg>';
+  const store='<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/></svg>';
+  return `<div class="pdp-crumbs">Forside &nbsp;›&nbsp; Skønhed &nbsp;›&nbsp; Parfumer &amp; dufte &nbsp;›&nbsp; Eau de Parfum</div>
+  <div class="pdp">
+    <div class="gal">${PDP_IMGS.map((u,i)=>`<div style="background-image:url('${u}')">${i===0?'<span class="badge">Black Days 25%</span>':''}</div>`).join('')}</div>
+    <aside class="bb">
+      <div class="bb-top"><div><a class="bb-brand">Carolina Herrera</a><h1>Good Girl</h1>
+        <div class="stars"><span>★★★★★</span><b>4.8</b><span class="muted">(1380)</span></div></div>
+        <button class="fav" aria-label="Føj til ønskeliste">${I.heart}</button></div>
+      <div><div class="price">877,50 kr.<s>1.170 kr.</s></div><div class="price-note">Gælder 13/11 – 01/12</div></div>
+      <div class="goodie-pts"><span class="m">M*</span><span><b>Optjen 878 stjernepoint</b> med <u>Magasin Goodie</u></span></div>
+      <div><b style="font-weight:500">Størrelse:</b> 80 ml<div class="sizes"><button>30 ml</button><button>50 ml</button><button class="on">80 ml</button></div></div>
+      <div style="display:grid;gap:10px">
+        <button class="btn btn-green" data-action="cart">Tilføj til kurv ${I.bag}</button>
+        <button class="btn">Hent i butik ${store}</button>
+      </div>
+      <a class="link" style="align-self:flex-start">Se lagerstatus i butik</a>
+      <div class="usps">
+        <div>${truck}<span><b>Fri fragt</b> på ordrer over 499 kr. for Goodie-medlemmer<a>Se leveringsmuligheder</a></span></div>
+        <div>${box}<span><b>Hurtig levering</b> inden for 1-3 hverdage<a>Se leveringstid</a></span></div>
+        <div>${ret}<span><b>Forlænget byttefrist</b> frem til 24/01-27<a>Læs mere</a></span></div>
+      </div>
+      ${pdpEvent()}
+      <div class="annot"><b>Event på PDP:</b> Tiny event card (Figma M26) placeret under buy boxen med samme fane-label som "Free Gift"-kortet. Match-logik (forslag): brand-tag på eventet → ellers eventets "Event Category" = produktets kategori → ellers vises intet. Maks. 1 event. Klik åbner draweren, så kunden kan tilmelde sig uden at forlade PDP'en.</div>
+      <div class="mod-ctrl pdp-ctrl"><b>Prototype – event-match:</b>
+        ${[['brand','Brand (Carolina Herrera)'],['cat','Kategori (Skønhed)'],['none','Intet event']].map(([k,l])=>`<button class="${(S.pdpMatch||'brand')===k?'on':''}" data-action="pdpmatch" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="acc"><div>Beskrivelse <span>+</span></div><div>Specifikationer <span>+</span></div><div>Levering &amp; Retur <span>+</span></div></div>
+    </aside>
+  </div>`;
+}
+
+/* ======================= Drawer ======================= */
+function stepsFor(ev){
+  const b=bk(ev.id);
+  if(S.drawer.mode==='waitlist') return ['waitlist'];
+  const s=[];
+  if(ev.flow==='timeslot') s.push('tid');
+  s.push('info');
+  if(ev.price) s.push('betaling');
+  return s;
+}
+const STEP_L={tid:'Tid',info:'Oplysninger',betaling:'Betaling',waitlist:'Venteliste',done:'Bekræftelse'};
+
+function openDrawer(id,view='detail',extra={}){
+  const ev=EV(id), b=bk(id);
+  S.drawer={id:+id,view,step:0,mode:extra.mode||'book',
+    day:0,slot:null,tickets:b?.tickets||1,pay:'card',terms:false,sms:true,edit:false,error:false,
+    form:{first:'',last:'',email:'',cc:'+45',phone:''}};
+  if(view==='flow'&&extra.goto){S.drawer.step=stepsFor(ev).indexOf(extra.goto)}
+  S.drawer._openedAt=Date.now();
+  document.body.classList.add('open');
+  renderDrawer();
+}
+function closeDrawer(){document.body.classList.remove('open');S.drawer=null;
+  if(evParam()) history.replaceState(null,'',location.pathname+location.hash.replace(/[?&]event=\d+/,''));setTimeout(()=>{if(!S.drawer)document.getElementById('drawer').innerHTML=''},300);render()}
+
+/* Transition mellem visninger i sidepanelet: nyt indhold glider ind fra højre (frem) eller venstre (tilbage) */
+const NAV={dir:'fwd'};
+const BACK_ACTIONS=new Set(['fback','toDetail','authback','edback','fback2','loginno']);
+function renderDrawer(){
+  const d=S.drawer; if(!d) return;
+  const ev=EV(d.id), el=document.getElementById('drawer');
+  const auth=d.view==='login'||d.view==='signup';
+  const key=d.type==='filter'?'f:'+d.view:auth?'a:'+d.view:d.id+':'+d.view+':'+d.step+':'+(d.ed?d.ed.step:''), same=el.dataset.key===key;
+  /* Animér kun skift inde i et allerede åbent panel (ikke når panelet selv glider ind) */
+  const animate=!same&&d._openedAt&&Date.now()-d._openedAt>350;
+  if(d.type==='filter') el.innerHTML=dFilter();
+  else if(auth) el.innerHTML=d.view==='login'?dLogin():dSignup();
+  else {
+    /* Bevar scroll-position (dagslider + panel) ved re-render inden for samme trin */
+    const sx=same?el.querySelector('.days')?.scrollLeft:0, sy=same?el.querySelector('.d-body')?.scrollTop:0;
+    if(d.view==='detail') el.innerHTML=dDetail(ev);
+    else if(d.view==='cancel') el.innerHTML=dCancel(ev);
+    else if(d.view==='cancelled') el.innerHTML=dCancelled(ev);
+    else if(d.view==='edit') el.innerHTML=dEdit(ev);
+    else if(d.view==='edited') el.innerHTML=dEdited(ev);
+    else el.innerHTML=dFlow(ev);
+    if(same){const dy=el.querySelector('.days'); if(dy) dy.scrollLeft=sx||0; const b=el.querySelector('.d-body'); if(b) b.scrollTop=sy||0;}
+    el.querySelector('.day.on')?.scrollIntoView({block:'nearest',inline:'nearest'});
+  }
+  el.dataset.key=key;
+  if(animate){
+    const cls=NAV.dir==='back'?'nav-back':'nav-fwd';
+    el.querySelectorAll(':scope>.d-body,:scope>.d-foot,:scope>.steps,:scope>.d-head h2').forEach(n=>n.classList.add(cls));
+  }
+  NAV.dir='fwd';
+}
+
+/* Møde 25/11: Positiv bekræftelse, når kunden opfylder niveaukravet (2–3 stjerner) */
+function okBox(ev){
+  if(!ev.stars||!S.loggedIn||!lvlOk(ev)) return '';
+  return `<div class="banner banner-success" style="margin:18px 0">${I.unlock}<div><b>Åben for dig</b>Eventet er kun for Goodie-medlemmer med ${ev.stars} stjerner eller flere – og det er du. ${stars(ev.stars)}</div></div>
+    <div class="annot"><b>Møde 25/11:</b> Vi viser også, hvad kunden <i>får</i> – ikke kun hvad de ikke kan få. Badge "Åben for dig" med åben lås på kortet, når kunden er logget ind og opfylder kravet. Reglen står stadig i faktaboksen, og knappen er grøn. Gæster og medlemmer under niveauet ser den lukkede lås.</div>`;
+}
+/* Møde 25/11 (tillæg – ikke i første release): påmindelse på events uden tilmelding. Kræver samtykke → kun Goodie-medlemmer */
+function remindBox(ev){
+  const on=!!S.reminders[ev.id];
+  return (S.loggedIn
+    ?`<label class="remind"><input type="checkbox" data-action="remind" data-id="${ev.id}" ${on?'checked':''}><span><b>Få en påmindelse</b>Vi minder dig om eventet på e-mail dagen før, det starter. Du kan til enhver tid afmelde påmindelsen.</span></label>`
+    :`<label class="remind"><input type="checkbox" data-action="remindask"><span><b>Få en påmindelse</b>Vi minder dig om eventet på e-mail dagen før, det starter. Kræver Goodie-login.</span></label>`)
+    +`<div class="annot"><b>Scenarie (tillæg):</b> Påmindelse sendes via Omnio, hvor der kun er medlemmer. Kræver særskilt samtykke, som kunden skal kunne trække tilbage. Flerdages-events: påmindelse dagen før startdato ("åbner i morgen").</div>`;
+}
+/* Login-overlay inde i sidepanelet (gæst):
+   – "Få en påmindelse" (flueben forbliver uændret) · – "Tilmeld dig" / "Book en tid" / "Køb billet" / "Skriv mig på venteliste" på medlems-events.
+   Efter login fortsætter kunden direkte – påmindelsen slås til, eller tilmeldingen åbnes. */
+function loginOverlay(ev){
+  const a=S.drawer.loginAsk, wl=a.mode==='waitlist';
+  const t=a.kind==='remind'?'Log ind for at få en påmindelse':wl?'Log ind for at skrive dig på venteliste':ev.flow==='timeslot'?'Log ind for at booke en tid':ev.price?'Log ind for at købe billet':'Log ind for at tilmelde dig';
+  const txt=a.kind==='remind'
+    ?`Påmindelser er for Goodie-medlemmer. Log ind, så minder vi dig om <b>${esc(ev.title)}</b> på e-mail dagen før, det starter.`
+    :`<b>${esc(ev.title)}</b> er kun for Goodie-medlemmer${ev.stars?` med ${ev.stars} stjerner eller flere`:''}. Log ind med din Goodie-profil, så fortsætter du ${wl?'til ventelisten':'din tilmelding'}.`;
+  return `<div class="d-overlay" data-action="loginno"><div class="d-sheet" role="dialog" aria-modal="true" aria-labelledby="loginT" data-action="noop">
+    <button class="icbtn d-sheet-x" data-action="loginno" aria-label="Luk">${I.close}</button>
+    <h4 id="loginT">${I.lock} ${t}</h4>
+    <p class="small" style="margin:0 0 16px">${txt} Det er gratis at blive medlem.</p>
+    <div style="display:grid;gap:8px"><button class="btn btn-green btn-block" data-action="login" data-cont="1">Log ind som Goodie-medlem</button><button class="btn btn-block" data-action="signup-goodie">Bliv Goodie-medlem</button><button class="link" data-action="loginno" style="justify-self:center;margin-top:6px">Nej tak</button></div>
+  </div></div>`;
+}
+/* Ofte stillede spørgsmål (forslag) – Figma "Drawer module / Accordions" (node 6327:6031).
+   Spørgsmålene tilpasses eventtypen; eventteamet kan redigere/tilføje pr. event i Omnio. */
+function faqItems(ev){
+  const q=[];
+  const signup=ev.flow!=='open', ts=ev.flow==='timeslot', beauty=ev.cats.includes('Skønhed'), kids=ev.cats.includes('Børn'), food=ev.cats.includes('Mad & Vin');
+  if(!signup) q.push(['Skal jeg tilmelde mig?','Nej, eventet kræver ingen tilmelding. Kom forbi, når det passer dig, inden for tidsrummet.']);
+  if(signup) q.push(['Skal jeg være Goodie-medlem for at deltage?',`Ja, du skal være Goodie-medlem for at ${ts?'booke en tid':'tilmelde dig'}${ev.stars?` – og have ${ev.stars} stjerner eller flere`:''}. Det er gratis at blive medlem, og du kan oprette dig direkte, når du ${ts?'booker':'tilmelder dig'}.`]);
+  if(ev.price) q.push(['Kan jeg få mine penge igen, hvis jeg afmelder?',`Ja, afmelder du dig senest ${ev.refundBy}, får du hele beløbet tilbage på dit betalingskort inden for 3–5 hverdage. Afmelder du dig senere, refunderes billetten ikke – men din plads går videre til andre.`]);
+  else if(signup) q.push(['Hvad hvis jeg ikke kan komme alligevel?','Så vil vi sætte pris på, at du afmelder dig, så din plads kan gå videre til en anden. Du afmelder under "Redigér" på eventet eller i MyMagasin.']);
+  q.push(['Skal jeg have noget med?',beauty?'Du skal blot have din bekræftelse med (i mailen eller MyMagasin). Kom gerne med renset hud uden makeup, så vi kan give dig den bedste behandling.':kids?'Alle materialer er inkluderet. Husk, at børn skal være i følge med en voksen.':food?'Du skal blot have din bekræftelse med. Kom gerne sulten – der er smagsprøver undervejs.':'Nej, du skal blot have din bekræftelse med (i mailen eller MyMagasin). Er der noget særligt, står det i beskrivelsen.']);
+  if(signup&&(ev.max||1)>1) q.push(['Kan jeg tage nogen med?',`Ja, du kan ${ev.price?'købe':'tilmelde'} op til ${ev.max} billetter pr. tilmelding. Det er kun dig, der skal være Goodie-medlem.`]);
+  if(signup) q.push(['Kan jeg ændre min tilmelding?',`Ja, tryk på "Redigér" på eventet eller i MyMagasin. Her kan du ændre antal billetter${ts?' og flytte din tid':''}${ev.price?'. Tilføjer du billetter, betaler du for de ekstra':''}.`]);
+  if(signup&&!ev.noWaitlist) q.push(['Hvad hvis eventet er udsolgt?','Så kan du skrive dig på ventelisten. Bliver der en plads ledig, giver vi besked på e-mail og SMS – først til mølle.']);
+  q.push(['Hvor foregår eventet?',`Magasin ${esc(ev.loc)}, ${esc(ev.place)} – ${ADDR[ev.loc]}.`]);
+  return q;
+}
+function faqHtml(ev){
+  return `<h3 class="sec-title faq-t">Ofte stillede spørgsmål</h3>
+    <div class="faq">${faqItems(ev).map(([q,a])=>`<details><summary><span>${q}</span>${I.chevdown}</summary><div class="faq-a">${a}</div></details>`).join('')}</div>
+    <div class="annot"><b>Ofte stillede spørgsmål (forslag):</b> Accordion-modulet fra Figma ("Drawer module / Accordions"). Spørgsmålene tilpasses eventtype (tilmelding, betaling, tidsbooking, kategori) – eventteamet kan redigere og tilføje egne pr. event.</div>`;
+}
+/* Fakta + badges – bruges både i sidepanelet og på eventets landingsside */
+function badgesHtml(ev){return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="ec-place">Magasin ${esc(ev.loc)}</span>${memberChip(ev,'ec-callout')}${soldChip(ev,'ec-callout')}${ev.cats.map(c=>`<span class="ec-place ec-cat">${c}</span>`).join('')}</div>`}
+function factsHtml(ev){
+  return `<div class="facts">
+      <div>${I.cal}<span>${esc(ev.date)}</span></div>
+      ${ev.time?`<div>${I.clock}<span>${esc(ev.time)}</span></div>`:''}
+      <div>${I.pin}<span>Magasin ${esc(ev.loc)}, ${esc(ev.place)}<br><span class="muted">${ADDR[ev.loc]}</span></span></div>
+      ${ev.flow!=='open'?`<div>${I.ticket}<span>${ev.price?kr(ev.price)+' pr. person':'Gratis'}${ev.max?` · max ${ev.max} pr. tilmelding`:''}</span></div>`:''}
+      ${ev.cap||ev.slots?(()=>{const n=spotsLeft(ev),t=ev.slots?` i alt fordelt på ${ev.slots.length} dage`:'';return `<div>${I.users}<span>${n===0?'Ingen ledige pladser':n<=LOW?`<b style="color:var(--danger-700)">Kun ${n} ledige ${n>1?'pladser':'plads'}${t}</b>`:n+' ledige pladser'+t}</span></div>`})():''}
+      ${ev.stars?`<div>${I.lock}<span>Kun for Goodie-medlemmer med ${ev.stars} stjerner eller flere</span></div>`:''}
+      ${ev.deadline?`<div>${I.hourglass}<span>Tilmeldingsfrist: ${ev.deadline}</span></div>`:''}
+    </div>`;
+}
+function detailParts(ev){
+  const b=bk(ev.id);
+  let banner='',body='',foot='';
+  if(active(b)){
+    const t={confirmed:['success',I.check,'Du er tilmeldt',`${b.slot?b.slot+' · ':''}${b.tickets} ${b.tickets>1?'billetter':'billet'}${ev.price?' · '+kr(ev.price*b.tickets)+' betalt':''} · Ref. ${b.ref}. Bekræftelsen er sendt til din e-mail.`],
+      waitlist:['extra',I.info,'Du er på ventelisten','Vi giver dig besked på e-mail og SMS, hvis der bliver en plads ledig. Du er ikke garanteret en plads.']}[b.status];
+    banner=`<div class="banner banner-${t[0]}" style="margin-bottom:18px">${t[1]}<div><b>${t[2]}</b>${t[3]}</div></div>`;
+    /* Møde 25/11: "Redigér" i stedet for "Afmeld" – afmelding ligger inde i redigeringen */
+    if(b.status==='confirmed') foot=`<button class="btn" data-action="ics">${I.cal} Tilføj til kalender</button><button class="btn btn-dark" data-action="editbk" data-id="${ev.id}">Redigér</button>`;
+    if(b.status==='waitlist') foot=`<button class="btn" data-action="cancel" data-id="${ev.id}">Forlad ventelisten</button>`;
+  } else if(S.loggedIn&&!lvlOk(ev)){
+    body=`<div class="lvl-box"><h4>${I.lock} Kun for Goodie-medlemmer med ${stars(ev.stars)}</h4>
+      <p class="small" style="margin:0 0 10px">Eventet er for medlemmer med ${ev.stars} stjerner eller flere. Du har ${S.stars} ${S.stars>1?'stjerner':'stjerne'} og kan derfor ikke ${ev.flow==='timeslot'?'booke en tid':'tilmelde dig'}.</p>
+      <p class="small" style="margin:0 0 14px">Du optjener stjerner, når du handler hos Magasin.</p>
+      <button class="btn btn-block" data-action="signup-goodie" data-v="stars">Sådan optjener du stjerner</button></div>
+      <div class="annot"><b>Niveaukrav (møde 23/11):</b> Events kan begrænses til Goodie-niveau 2 eller 3 stjerner. På kortet vises lås + antal stjerner i stedet for en lang tekst – låsen forsvinder, når kunden opfylder kravet. Niveau 1 vises ikke, da alle medlemmer har min. 1 stjerne.</div>`;
+    foot='';
+  } else if(ev.flow==='open'){
+    body=`<div class="banner banner-info" style="margin:0 0 18px">${I.info}<div><b>Ingen tilmelding</b>Kom forbi, når det passer dig.</div></div>${S.remind?remindBox(ev):''}`;
+    foot=`<button class="btn" data-action="ics">${I.cal} Tilføj til kalender</button><button class="btn btn-dark" data-action="ics" data-v="route">${I.pin} Find vej</button>`;
+  } else if(spotsLeft(ev)===0&&ev.noWaitlist){
+    banner=`<div class="banner banner-danger" style="margin-bottom:18px">${I.close}<div><b>Udsolgt</b>Der er ikke flere ledige pladser.</div></div>`;
+    body=`<div class="annot"><b>Møde 25/11:</b> Det kan sættes pr. event, om der er venteliste. Uden venteliste står der kun "Udsolgt", og knappen er grå uden handling. Udgangspunktet er venteliste.</div>`;
+    foot=`<button class="btn" disabled>Udsolgt</button>`;
+  } else if(spotsLeft(ev)===0){
+    banner=`<div class="banner banner-extra" style="margin-bottom:18px">${I.info}<div><b>Udsolgt</b>Skriv dig på ventelisten – så giver vi besked, hvis der bliver en plads ledig. Du er ikke garanteret en plads.</div></div>`;
+    body=okBox(ev);
+    foot=`<button class="btn btn-dark" data-action="flow" data-mode="waitlist">Skriv mig på venteliste</button>`;
+  } else {
+    const lbl=ev.flow==='timeslot'?'Vælg tidspunkt':ev.price?`Køb billet · ${kr(ev.price)}`:'Tilmeld dig';
+    body=okBox(ev)+(!S.loggedIn&&ev.member?`<div class="annot"><b>Møde 25/11:</b> Gæster ser samme knap som medlemmer. Trykker gæsten på den, åbner et login-overlay i sidepanelet (samme mønster som påmindelse). Efter login fortsætter kunden direkte i tilmeldingen – eller ser niveau-boksen, hvis stjernekravet ikke er opfyldt. Låsen "Kun Goodie-medlemmer" står stadig som badge.</div>`:'');
+    foot=`<button class="btn ${ev.stars?'btn-green':'btn-dark'}" data-action="flow">${lbl} ${I.arrow}</button>`;
+  }
+  return {banner,body,foot};
+}
+function dDetail(ev){
+  const {banner,body,foot}=detailParts(ev);
+  return `<button class="icbtn dark d-close" data-action="close" aria-label="Luk">${I.close}</button>
+  <button class="icbtn d-share" data-action="share" data-id="${ev.id}" aria-label="Del event">${I.share}</button>
+  <div class="d-body withhero">
+    <div class="d-hero" ${imgStyle(ev)}>${imgInner(ev)}</div>
+    ${banner}
+    ${badgesHtml(ev)}
+    <h2 class="d-title">${esc(ev.title)}</h2>
+    ${factsHtml(ev)}
+    ${body}
+    <div class="divider" style="margin-top:4px"></div>
+    <h3 class="sec-title">Beskrivelse</h3>
+    <div class="desc">${ev.desc.map(p=>`<p>${esc(p)}</p>`).join('')}</div>
+    ${faqHtml(ev)}
+    ${shareMode()==='page'?`<a class="link lp-link" href="#/event/${ev.id}">Gå til eventets side ${I.arrow}</a>`:''}
+    <div class="annot"><b>Del event:</b> ${shareMode()==='page'?`Del-knappen deler et link til eventets landingsside (#/event/${ev.id} – i produktion fx magasin.dk/events/&lt;slug&gt;).`:`Del-knappen deler et link til eventoversigten med dette sidepanel foldet ud (#/events?event=${ev.id} – i produktion fx magasin.dk/events/&lt;slug&gt;). Lukker kunden panelet, står de i eventoversigten.`} Variant vælges i prototype-panelet. På mobil åbnes telefonens indbyggede delingsmenu.</div>
+  </div>
+  ${foot?`<div class="d-foot">${foot}</div>`:''}
+  ${S.drawer.loginAsk&&!S.loggedIn?loginOverlay(ev):''}
+  ${S.drawer.shareAsk?shareOverlay(ev):''}`;
+}
+
+function progress(steps,idx){
+  const all=[...steps,'done'];
+  if(all.length<=2&&steps[0]==='waitlist') return '';
+  /* Figma Progressbar: udførte trin = grøn prik med flueben · aktuelt trin = grøn prik · kommende = grå. Bjælken fyldes op til aktuelt trin */
+  const pct=all.length>1?Math.min(idx,all.length-1)/(all.length-1)*100:0;
+  return `<div class="steps"><div class="pbar"><span class="pbar-track"></span><span class="pbar-fill" style="width:calc((100% - 80px) * ${pct/100})"></span>
+    ${all.map((s,i)=>`<div class="pmark ${i<idx?'done':i===idx?'on':''}"><span class="pdot">${i<idx?I.check:''}</span><span class="plbl">${STEP_L[s]}</span></div>`).join('')}</div></div>`;
+}
+
+function dFlow(ev){
+  const d=S.drawer, steps=stepsFor(ev);
+  const cur=d.step>=steps.length?'done':steps[d.step];
+  const head=`<div class="d-head">${cur==='done'?'<span style="width:32px"></span>':`<button class="icbtn" data-action="fback" aria-label="Tilbage">${I.back}</button>`}<h2>${cur==='done'?'':d.mode==='waitlist'?'Venteliste':ev.flow==='timeslot'?'Book en tid':'Tilmelding'}</h2><button class="icbtn dark" data-action="close" aria-label="Luk">${I.close}</button></div>`;
+  /* Event-header i trin: samme billedformat som eventkortet (bredt, radius 6) + sted som badge */
+  const evline=`<div class="evline"><div class="evline-img" ${imgStyle(ev)}>${imgInner(ev)}</div><div class="tb"><span class="ec-place">Magasin ${esc(ev.loc)}</span><h4>${esc(ev.title)}</h4></div></div>`;
+  let body='',foot='';
+  const total=(ev.price||0)*d.tickets;
+
+  if(cur==='tid'){
+    const day=ev.slots[d.day];
+    const firstFree=(()=>{for(let i=0;i<ev.slots.length;i++){const j=ev.slots[i].t.findIndex(x=>x.left>0);if(j>-1)return[i,j]}})();
+    body=`${evline}
+      ${lowLine(ev)?`<p class="small" style="margin:0 0 12px">${lowLine(ev)} i alt på tværs af alle tider.</p>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 class="sec-title">Vælg dag</h3><button class="link link-green" data-action="nextfree" data-v="${firstFree.join(',')}">Næste ledige tid</button></div>
+      <div class="days">${ev.slots.map((s,i)=>{const free=s.t.some(x=>x.left>0);return `<button class="day ${i===d.day?'on':''} ${free?'':'none'}" data-action="day" data-v="${i}"><b>${s.d}</b>${s.n}</button>`}).join('')}</div>
+      <div class="times">${day.t.map((x,j)=>{const on=d.slot&&d.slot[0]===d.day&&d.slot[1]===j;const c=x.left===0?'#b71926':x.left<=2?'#dab900':'#507f70';
+        return `<div class="trow"><div><b>${x.t}</b><span class="avail"><span class="dotc" style="background:${c}"></span>${x.left===0?'Optaget':x.left<=2?`Kun ${x.left} ${x.left>1?'ledige':'ledig'}`:`${x.left} ledige pladser`}</span></div>
+        <button class="btn btn-sm tbtn ${on?'on':''}" ${x.left===0?'disabled':''} data-action="slot" data-v="${j}">${on?I.check+' Valgt':'Vælg'}</button></div>`}).join('')}</div>
+      <div class="annot"><b>Note:</b> Dagvælger genbrugt fra "Goodie Day", tidsliste inspireret af Click &amp; Collect-lagerlisten. Der kan være mange tider pr. dag → listen scroller.</div>`;
+    foot=`<button class="btn btn-dark" ${d.slot?'':'disabled'} data-action="fnext">Fortsæt ${I.arrow}</button>`;
+  }
+
+  if(cur==='info'||cur==='waitlist'){
+    const who=S.loggedIn&&!d.edit
+      ?`<div class="profile"><div><b>${USER.first} ${USER.last}</b><br>${USER.email}<br>+45 ${USER.phone}</div><button class="link" data-action="edit">Rediger</button></div>
+        <p class="small muted" style="margin:8px 0 0">Oplysningerne er hentet fra din Goodie-profil.</p>`
+      :`<div class="form-grid">
+          <div class="field-row" style="grid-template-columns:1fr 1fr">${fld('first','Fornavn')}${fld('last','Efternavn')}</div>
+          ${fld('email','E-mail','email')}
+          <div class="field-row"><div class="field"><label>Landekode</label><select data-f="cc"><option>+45</option><option>+46</option><option>+47</option><option>+49</option><option>+44</option></select></div>${fld('phone','Telefonnummer','tel')}</div>
+          <p class="small muted" style="margin:0">Telefonnummeret bruges kun til bekræftelser og påmindelser.</p>
+        </div>`;
+    const qty=ev.max>1&&cur!=='waitlist'?`<div class="divider"></div><div class="qty"><div><h3 class="sec-title" style="margin:0">Antal billetter</h3><span class="small muted">${ev.price?kr(ev.price)+' pr. billet · ':''}max ${ev.max}${d.slot&&bookMax(ev,d)<ev.max?` · ${bookMax(ev,d)===1?'kun 1 ledig plads':`kun ${bookMax(ev,d)} ledige pladser`} på den valgte tid`:''}</span></div>
+        <div class="stepper"><button data-action="qty" data-v="-1" ${d.tickets<=1?'disabled':''}>−</button><span>${d.tickets}</span><button data-action="qty" data-v="1" ${d.tickets>=bookMax(ev,d)?'disabled':''}>+</button></div></div>`:'';
+    const slotSum=d.slot?`<div class="summary" style="margin-bottom:18px"><div class="row"><span>${I.cal} Valgt tid</span><b>${ev.slots[d.slot[0]].d} ${ev.slots[d.slot[0]].n} · ${ev.slots[d.slot[0]].t[d.slot[1]].t}</b></div></div>`:'';
+    body=`${evline}${slotSum}
+      ${cur==='waitlist'?`<div class="banner banner-extra" style="margin-bottom:18px">${I.info}<div><b>Du er ikke garanteret en plads</b>Bliver der en plads ledig, giver vi besked på e-mail og SMS – først til mølle. Du vælger antal billetter, når du tilmelder dig.</div></div>`:''}
+      <h3 class="sec-title">Dine oplysninger</h3>${who}${qty}
+      <div class="divider"></div>
+      <label class="check"><input type="checkbox" data-c="sms" ${d.sms?'checked':''}> Send mig en påmindelse på SMS dagen før</label>
+      <p class="small muted">Se hvordan vi behandler dine personoplysninger i vores <a href="#" onclick="return false">privatlivspolitik</a>.</p>
+      ${d.error?`<div class="banner banner-danger">${I.close}<div><b>Udfyld de markerede felter</b>Vi skal bruge navn og en gyldig e-mail for at sende din bekræftelse.</div></div>`:''}
+      <div class="annot"><b>Note (Morten):</b> Tilmelding sker i trin i draweren i stedet for at alle felter ligger under indholdet – så fokuserer kunden kun på tilmeldingen. Felter fra nuværende Clientela-flow: navn, e-mail, landekode + telefon, antal billetter.</div>`;
+    const lbl=cur==='waitlist'?'Skriv mig på venteliste':ev.price?`Fortsæt til betaling · ${kr(total)}`:'Bekræft tilmelding';
+    foot=`<button class="btn btn-dark" data-action="fnext">${lbl} ${I.arrow}</button>`;
+  }
+
+  if(cur==='betaling'){
+    const b=bk(ev.id);
+    body=`${evline}
+      ${d.payError?`<div class="banner banner-danger" style="margin-bottom:18px">${I.close}<div><b>Betalingen blev afvist</b>Du er ikke tilmeldt. Prøv igen, eller vælg en anden betalingsmetode.</div></div>`:''}
+      <h3 class="sec-title">Oversigt</h3>
+      <div class="summary">
+        <div class="row"><span>${d.slotLabel?'Tidspunkt':'Hvornår'}</span><b style="text-align:right">${esc(d.slotLabel||ev.date+(ev.time?', '+ev.time:''))}</b></div>
+        <div class="row" style="border-bottom:1px solid var(--b300);padding-bottom:8px;margin-bottom:2px"><span>Hvor</span><b style="text-align:right">Magasin ${esc(ev.loc)}, ${esc(ev.place)}</b></div>
+        <div class="row"><span>${d.tickets} × billet à ${kr(ev.price)}</span><span>${kr(total)}</span></div>
+        ${ev.member?`<div class="row muted"><span>Goodie-pris</span><span>Inkluderet</span></div>`:''}
+        <div class="row tot"><span>I alt inkl. moms</span><span>${kr(total)}</span></div>
+      </div>
+      <h3 class="sec-title" style="margin-top:22px">Betalingsmetode</h3>
+      ${payOpts(d)}
+      <div class="divider"></div>
+      ${termsHtml(ev,d)}
+      <div class="annot"><b>Fra nuværende Clientela-flow:</b> kortnummer, udløbsdato, CVC, navn på kort, "gem til næste betaling" + accept af handelsbetingelser. Her lagt i et separat betalingstrin i stedet for en akkordeon under indholdet. Felterne leveres af betalingsgatewayen (hosted fields).<br><b>Beslutning:</b> Ingen mellemstatus. Tilmeldingen oprettes først, når betalingen er gennemført. Fuld refusion ved afmelding indtil afmeldingsfristen (default: eventets start – kan sættes til fx 3, 5 eller 7 dage før).</div>`;
+    foot=payBtn(d,`Betal ${kr(total)}`);
+  }
+
+  if(cur==='done'){
+    const b=bk(ev.id), wl=b.status==='waitlist';
+    body=`<div class="center"><div class="success-ic">${wl?I.hourglass:I.check}</div>
+      <h2 style="font-size:34px;margin-bottom:8px">${wl?'Du er på ventelisten':'Du er tilmeldt!'}</h2>
+      <p class="muted" style="margin:0 0 22px">${wl?'Vi giver besked, hvis der bliver en plads ledig.':'Vi har sendt en bekræftelse til'} <b style="color:var(--b700)">${S.loggedIn?USER.email:(d.form.email||'din e-mail')}</b></p></div>
+      <div class="summary">
+        <div class="row"><span>Event</span><b style="text-align:right">${esc(ev.title)}</b></div>
+        <div class="row"><span>Hvornår</span><b>${esc(b.slot||ev.date+', '+ev.time)}</b></div>
+        <div class="row"><span>Hvor</span><b>Magasin ${esc(ev.loc)}, ${esc(ev.place)}</b></div>
+        ${wl?'':`<div class="row"><span>Billetter</span><b>${b.tickets}${ev.price?' · '+kr(ev.price*b.tickets)+' betalt':''}</b></div>`}
+        <div class="row"><span>Reference</span><b>${b.ref}</b></div>
+      </div>
+      ${S.loggedIn?`<p class="small muted center" style="margin-top:16px">Du kan altid se og redigere dine events i MyMagasin.</p>`
+        :`<div class="goodie-box"><h4>Bliv Goodie-medlem</h4><p class="small" style="margin:0 0 12px">Så kan du se alle dine tilmeldinger samlet og få adgang til eksklusive Goodie-events.</p><button class="btn btn-green btn-block" data-action="signup-goodie">Bliv medlem – det er gratis</button></div>`}`;
+    foot=`<button class="btn" data-action="ics">${I.cal} Tilføj til kalender</button>${S.loggedIn?`<a class="btn btn-dark" href="#/mypage" data-action="close">Se mine events</a>`:`<button class="btn btn-dark" data-action="close">Luk</button>`}`;
+  }
+
+  return `${head}${progress(steps,cur==='done'?steps.length:d.step)}<div class="d-body">${body}</div><div class="d-foot">${foot}</div>`;
+}
+/* Betalingsmetoder – Apple Pay efter Apples retningslinjer: officielt Apple Pay-mærke i listen og sort "Betal med  Pay"-knap */
+function payOpts(d){
+  return `<div class="pay">${[['card','Kredit- eller debitkort','<span>DK</span><span>MC</span><span>VISA</span>'],['mobilepay','MobilePay','<span>MP</span>'],['apple','Apple Pay',`<span class="apay-mark">${I.apple}Pay</span>`]].map(([k,l,lg])=>`<label class="payopt ${d.pay===k?'on':''}"><input type="radio" name="pay" data-action="pm" data-v="${k}" ${d.pay===k?'checked':''}> ${l}<span class="logos">${lg}</span></label>
+        ${k==='card'&&d.pay==='card'?`<div class="cardbox form-grid">
+          <div class="field"><label>Kortnummer</label><input inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="off"></div>
+          <div class="field-row" style="grid-template-columns:1fr 1fr"><div class="field"><label>Udløbsdato</label><input placeholder="MM/ÅÅ" autocomplete="off"></div><div class="field"><label>CVC / CVV</label><input placeholder="123" autocomplete="off"></div></div>
+          <div class="field"><label>Navn på kort</label><input placeholder="J. Hansen" autocomplete="off"></div>
+          <label class="check small"><input type="checkbox"> Gem til min næste betaling</label>
+        </div>`:''}`).join('')}</div>
+      ${d.pay==='apple'?`<div class="annot"><b>Apple Pay (møde 25/11):</b> Apples krav – brug det officielle Apple Pay-mærke (uændret) i listen over betalingsmetoder, og når Apple Pay er valgt, erstattes betalingsknappen af Apples sorte "Betal med Apple Pay"-knap (ingen egen tekst/ikon på knappen). Ved web: Apple Pay JS / Adyen-komponent.</div>`:''}`;
+}
+/* Møde 25/11: Refusionsfristen vises kun her – som lille tekst under vilkårene (ikke i eventets faktaboks) */
+function termsHtml(ev,d){
+  const note=!ev.refundBy?'':ev.refundPassed
+    ?`Bemærk: Fristen for refusion var ${ev.refundBy}. Afmelder du dig, refunderes billetterne derfor ikke.`
+    :`Fristen for refusion er ${ev.refundBy}. Afmelder du dig senest da, får du hele beløbet tilbage.`;
+  return `<label class="check"><input type="checkbox" data-c="terms" ${d.terms?'checked':''}> <span>Jeg accepterer Magasins <a href="#" onclick="return false">handelsbetingelser</a> for events.</span></label>
+      ${note?`<p class="small muted refund-note">${note}</p>`:''}
+      <div class="annot"><b>Møde 25/11:</b> Refusionsfristen er fjernet fra eventets faktaboks (for meget tekst) og står i stedet med småt ved vilkårene – to varianter: før og efter fristen. Fristen står også i bekræftelsesmailen.</div>`;
+}
+function payBtn(d,lbl){
+  return d.pay==='apple'
+    ?`<button class="apay-btn" ${d.terms?'':'disabled'} data-action="dopay" aria-label="Betal med Apple Pay">Betal med ${I.apple}<span>Pay</span></button>`
+    :`<button class="btn btn-dark" ${d.terms?'':'disabled'} data-action="dopay">${lbl} ${I.arrow}</button>`;
+}
+/* Maks. antal billetter: eventets max, men aldrig flere end der er ledige – ved tidsbooking på den valgte tid */
+function bookMax(ev,d){
+  const free=ev.slots?(d.slot?ev.slots[d.slot[0]].t[d.slot[1]].left:ev.max):(ev.spots||ev.max);
+  return Math.max(1,Math.min(ev.max||1,free));
+}
+function fld(k,label,type='text'){const d=S.drawer;const err=d.error&&((k==='first'&&!d.form.first)||(k==='last'&&!d.form.last)||(k==='email'&&!/@/.test(d.form.email)));
+  return `<div class="field ${err?'err':''}"><label>${label}</label><input type="${type}" data-f="${k}" value="${esc(d.form[k])}"></div>`}
+
+function dCancel(ev){
+  const b=bk(ev.id), wl=b.status==='waitlist';
+  const paid=ev.price&&!wl, amt=paid?ev.price*b.tickets:0, refund=paid&&!ev.refundPassed;
+  let info='',btn='';
+  if(wl){ info=`<p class="muted">Du får ikke længere besked, hvis der bliver en plads ledig.</p>`; btn=`<button class="btn btn-dark" data-action="doCancel">Forlad venteliste</button>`; }
+  else if(refund){
+    info=`<div class="banner banner-success" style="margin-top:16px">${I.check}<div><b>Du får ${kr(amt)} refunderet</b>Du afmelder dig inden fristen ${ev.refundBy}. Beløbet sendes tilbage til dit betalingskort inden for 3–5 hverdage.</div></div>
+      <div class="annot"><b>Møde 23/11:</b> Afmeldingen er dynamisk: grøn før afmeldingsfristen (fuld refusion), rød efter. Frist pr. event: ${ev.refundRule}. Se Lancôme-workshoppen for et eksempel efter fristen.</div>`;
+    btn=`<button class="btn btn-green" data-action="doCancel">Afmeld og få refusion</button>`;
+  } else if(paid){
+    info=`<div class="banner banner-danger" style="margin-top:16px">${I.close}<div><b>Du får ikke pengene tilbage</b>Fristen for refusion var ${ev.refundBy}. Du har betalt ${kr(amt)} for ${b.tickets} ${b.tickets>1?'billetter':'billet'}, og beløbet refunderes ikke, når du afmelder dig – men din plads går videre til andre.</div></div>
+      <label class="check" style="margin-top:16px"><input type="checkbox" data-c="noRefund" ${S.drawer.noRefund?'checked':''}> Jeg forstår, at jeg ikke får refunderet ${kr(amt)}</label>
+      <div class="annot"><b>Møde 23/11:</b> Efter afmeldingsfristen (${ev.refundRule}) kan man stadig afmelde, men uden refusion. Kunden skal aktivt bekræfte det.</div>`;
+    btn=`<button class="btn btn-danger" data-action="doCancel" ${S.drawer.noRefund?'':'disabled'}>Afmeld uden refusion</button>`;
+  } else { info=`<p class="muted">Din plads bliver givet videre til andre.</p>`; btn=`<button class="btn btn-dark" data-action="doCancel">Ja, afmeld</button>`; }
+  return `<div class="d-head"><button class="icbtn" data-action="${S.drawer.fromEdit?'editbk':'toDetail'}" data-id="${ev.id}">${I.back}</button><h2>${wl?'Forlad venteliste':'Afmeld'}</h2><button class="icbtn dark" data-action="close">${I.close}</button></div>
+  <div class="d-body"><h3 class="sec-title" style="font-size:28px">${wl?'Vil du forlade ventelisten?':'Vil du afmelde dig?'}</h3>
+    <div class="summary"><div class="row"><span>Event</span><b style="text-align:right">${esc(ev.title)}</b></div><div class="row"><span>Hvornår</span><b>${esc(b.slot||ev.date)}</b></div>${wl?'':`<div class="row"><span>Billetter</span><b>${b.tickets}${paid?' · '+kr(amt):''}</b></div>`}</div>
+    ${info}
+  </div>
+  <div class="d-foot"><button class="btn" data-action="toDetail">Behold min plads</button>${btn}</div>`;
+}
+
+/* ======================= Redigér tilmelding (møde 25/11) =======================
+   Én booking pr. event. Kunden kan ændre antal billetter (op = betaling for ekstra, ned = refusion for de afmeldte)
+   og – ved tidsbooking – flytte hele bookingen (alle billetter samlet) til et andet tidspunkt. Referencen bevares. */
+const slotLbl=(ev,si)=>si?`${ev.slots[si[0]].d} ${ev.slots[si[0]].n} · ${ev.slots[si[0]].t[si[1]].t}`:'';
+const sameSi=(a,b)=>!!a&&!!b&&a[0]===b[0]&&a[1]===b[1];
+function findSi(ev,b){
+  if(b.si) return b.si;
+  if(!ev.slots||!b.slot) return null;
+  for(let i=0;i<ev.slots.length;i++) for(let j=0;j<ev.slots[i].t.length;j++) if(slotLbl(ev,[i,j])===b.slot) return [i,j];
+  return null;
+}
+function edMax(ev,b,si){
+  const free = ev.slots ? (si?ev.slots[si[0]].t[si[1]].left+(sameSi(si,b.si)?b.tickets:0):0) : (ev.spots||0)+b.tickets;
+  return Math.max(1,Math.min(ev.max||1,free));
+}
+function openEdit(id){
+  const ev=EV(id), b=bk(id);
+  if(!S.drawer||S.drawer.id!==+id) openDrawer(id);
+  const d=S.drawer; b.si=findSi(ev,b);
+  d.view='edit'; d.fromEdit=true; d.terms=false; d.pay=d.pay||'card';
+  d.ed={step:0,tickets:b.tickets,si:b.si,day:b.si?b.si[0]:0};
+  renderDrawer();
+}
+function edCalc(ev,b,e){
+  const diff=e.tickets-b.tickets, moved=!!ev.slots&&!sameSi(e.si,b.si);
+  const extra=ev.price&&diff>0?diff*ev.price:0;
+  const back=ev.price&&diff<0?-diff*ev.price:0;
+  const refund=back&&!ev.refundPassed?back:0;
+  return {diff,moved,extra,back,refund,changed:diff!==0||moved};
+}
+function dEdit(ev){
+  const d=S.drawer, b=bk(ev.id), e=d.ed, c=edCalc(ev,b,e), ts=!!ev.slots;
+  const head=`<div class="d-head"><button class="icbtn" data-action="${e.step?'edback':'toDetail'}" aria-label="Tilbage">${I.back}</button><h2>Redigér tilmelding</h2><button class="icbtn dark" data-action="close" aria-label="Luk">${I.close}</button></div>`;
+  const evline=`<div class="evline"><div class="evline-img" ${imgStyle(ev)}>${imgInner(ev)}</div><div class="tb"><span class="ec-place">Magasin ${esc(ev.loc)}</span><h4>${esc(ev.title)}</h4></div></div>`;
+  const now=`<div class="summary" style="margin-bottom:20px"><div class="row"><span>Din tilmelding nu</span><b>${b.slot?esc(b.slot)+' · ':''}${b.tickets} ${b.tickets>1?'billetter':'billet'}</b></div><div class="row muted"><span>Reference</span><span>${b.ref}</span></div></div>`;
+  let body='',foot='';
+  if(e.step===0){
+    const day=ts?ev.slots[e.day]:null, max=edMax(ev,b,e.si);
+    const times=ts?`<h3 class="sec-title">Vælg dag</h3>
+      <div class="days">${ev.slots.map((s,i)=>{const free=s.t.some((x,j)=>x.left>0||sameSi([i,j],b.si));return `<button class="day ${i===e.day?'on':''} ${free?'':'none'}" data-action="eday" data-v="${i}"><b>${s.d}</b>${s.n}</button>`}).join('')}</div>
+      <div class="times">${day.t.map((x,j)=>{const own=sameSi([e.day,j],b.si), left=x.left+(own?b.tickets:0), on=sameSi([e.day,j],e.si);const col=left===0?'#b71926':left<=2?'#dab900':'#507f70';
+        return `<div class="trow"><div><b>${x.t}</b><span class="avail">${own?`<span class="chip chip-success" style="margin-right:6px">Din tid</span>`:''}<span class="dotc" style="background:${col}"></span>${left===0?'Optaget':left<=2?`Kun ${left} ${left>1?'ledige':'ledig'}`:`${left} ledige pladser`}</span></div>
+        <button class="btn btn-sm tbtn ${on?'on':''}" ${left===0?'disabled':''} data-action="eslot" data-v="${j}">${on?I.check+' Valgt':'Vælg'}</button></div>`}).join('')}</div>`:'';
+    const qty=(ev.max||1)>1?`<div class="divider"></div><div class="qty"><div><h3 class="sec-title" style="margin:0">Antal billetter</h3><span class="small muted">${ev.price?kr(ev.price)+' pr. billet · ':''}max ${ev.max}</span></div>
+        <div class="stepper"><button data-action="eqty" data-v="-1" ${e.tickets<=1?'disabled':''}>−</button><span>${e.tickets}</span><button data-action="eqty" data-v="1" ${e.tickets>=max?'disabled':''}>+</button></div></div>
+        ${c.extra?`<p class="small" style="margin:8px 0 0">Du betaler ${kr(c.extra)} for ${c.diff} ${c.diff>1?'ekstra billetter':'ekstra billet'}.</p>`:''}
+        ${c.back?`<p class="small" style="margin:8px 0 0">${c.refund?`Du får ${kr(c.refund)} refunderet for ${-c.diff} ${-c.diff>1?'billetter':'billet'}.`:`Fristen for refusion er overskredet – ${-c.diff>1?'billetterne':'billetten'} refunderes ikke.`}</p>`:''}`:'';
+    body=`${evline}${now}${times}${qty}
+      <div class="divider"></div>
+      <div class="cancel-row"><div><b>Kan du ikke komme alligevel?</b><span class="small muted">Afmeld hele din tilmelding.</span></div><button class="link link-danger" data-action="cancel" data-id="${ev.id}">Afmeld</button></div>
+      <div class="annot"><b>Møde 25/11:</b> "Afmeld" er erstattet af "Redigér" – afmelding ligger bag et ekstra klik. Én booking pr. event: ved tidsbooking flyttes alle billetter samlet. Antal kan sættes op (betaling for ekstra billetter) og ned (refusion for de afmeldte, hvis inden fristen). Referencen bevares, og ændringen ryger ikke ind under "Afmeldte". Afventer afklaring med Arcade/Omnio.</div>`;
+    foot=`<button class="btn" data-action="toDetail">Annullér</button><button class="btn btn-dark" data-action="ednext" ${c.changed&&(!ts||e.si)?'':'disabled'}>Fortsæt ${I.arrow}</button>`;
+  } else {
+    const newSlot=ts?slotLbl(ev,e.si):'';
+    const rows=`${ts?`<div class="row"><span>Tidspunkt</span><b>${c.moved?`<s class="chg-old">${esc(b.slot)}</s>${esc(newSlot)}`:esc(b.slot)}</b></div>`:`<div class="row"><span>Hvornår</span><b>${esc(ev.date)}${ev.time?', '+esc(ev.time):''}</b></div>`}
+      <div class="row"><span>Billetter</span><b>${c.diff?`<s class="chg-old">${b.tickets}</s>`:''}${e.tickets}</b></div>
+      ${ev.price?`<div class="row"><span>Pris</span><b>${kr(ev.price)} pr. billet</b></div>`:''}
+      ${c.extra?`<div class="row tot"><span>Du betaler nu</span><span>${kr(c.extra)}</span></div>`:''}
+      ${c.back?`<div class="row tot"><span>Refusion</span><span>${c.refund?kr(c.refund):'Refunderes ikke'}</span></div>`:''}`;
+    body=`${evline}<h3 class="sec-title">Dine ændringer</h3><div class="summary">${rows}</div>
+      ${c.back&&!c.refund?`<p class="small muted" style="margin:10px 0 0">Fristen for refusion var ${ev.refundBy}. De afmeldte billetter refunderes derfor ikke, men pladserne går videre til andre.</p>`:''}
+      ${c.refund?`<p class="small muted" style="margin:10px 0 0">Beløbet sendes tilbage til dit betalingskort inden for 3–5 hverdage.</p>`:''}
+      ${c.extra?`<h3 class="sec-title" style="margin-top:22px">Betalingsmetode</h3>${payOpts(d)}<div class="divider"></div>${termsHtml(ev,d)}`:''}
+      <div class="annot"><b>Møde 25/11:</b> Oversigt over ændringerne, før kunden bekræfter ("Opdatér booking"). Kunden får en mail om, at bookingen er redigeret (se 5 · Trigger-mails).</div>`;
+    foot=`<button class="btn" data-action="edback">Tilbage</button>${c.extra?payBtn(d,`Betal ${kr(c.extra)} og opdatér`).replace('data-action="dopay"','data-action="edsave"'):`<button class="btn btn-dark" data-action="edsave">Opdatér booking ${I.arrow}</button>`}`;
+  }
+  return `${head}<div class="d-body">${body}</div><div class="d-foot">${foot}</div>`;
+}
+function edSave(){
+  const d=S.drawer, ev=EV(d.id), b=bk(d.id), e=d.ed, c=edCalc(ev,b,e);
+  const apply=()=>{
+    const before={tickets:b.tickets,slot:b.slot};
+    if(ev.slots){ if(b.si) ev.slots[b.si[0]].t[b.si[1]].left+=b.tickets; ev.slots[e.si[0]].t[e.si[1]].left-=e.tickets; b.si=e.si; b.slot=slotLbl(ev,e.si); }
+    else if(ev.spots!=null) ev.spots=Math.max(0,ev.spots-c.diff);
+    if(ev.price) b.paid=(b.paid||ev.price*before.tickets)+c.extra-c.refund;
+    b.tickets=e.tickets;
+    d.edRes={...c,before}; d.view='edited'; save(); renderDrawer(); render(); toast('Din booking er opdateret');
+  };
+  if(!c.extra) return apply();
+  const btn=document.querySelector('[data-action="edsave"]'); btn.disabled=true; btn.textContent='Behandler betaling …';
+  setTimeout(()=>{ if(S.payFail){d.payError=true;toast('Betalingen blev afvist – din booking er uændret');renderDrawer();return} apply(); },900);
+}
+function dEdited(ev){
+  const d=S.drawer, b=bk(ev.id), r=d.edRes;
+  return `<div class="d-head"><span style="width:32px"></span><h2></h2><button class="icbtn dark" data-action="close" aria-label="Luk">${I.close}</button></div>
+  <div class="d-body"><div class="center"><div class="success-ic">${I.check}</div>
+    <h2 style="font-size:34px;margin-bottom:8px">Din booking er opdateret</h2>
+    <p class="muted" style="margin:0 0 22px">Vi har sendt en bekræftelse til <b style="color:var(--b700)">${USER.email}</b></p></div>
+    <div class="summary">
+      <div class="row"><span>Event</span><b style="text-align:right">${esc(ev.title)}</b></div>
+      <div class="row"><span>Hvornår</span><b>${esc(b.slot||ev.date+', '+ev.time)}</b></div>
+      <div class="row"><span>Billetter</span><b>${r.diff?`<s class="chg-old">${r.before.tickets}</s>`:''}${b.tickets}</b></div>
+      ${r.extra?`<div class="row"><span>Betalt for ekstra billetter</span><b>${kr(r.extra)}</b></div>`:''}
+      ${r.back?`<div class="row"><span>Refusion</span><b>${r.refund?kr(r.refund):'Refunderes ikke'}</b></div>`:''}
+      <div class="row"><span>Reference</span><b>${b.ref}</b></div>
+    </div>
+    <p class="small muted center" style="margin-top:16px">Referencen er den samme – du har stadig én tilmelding til eventet.</p></div>
+  <div class="d-foot"><button class="btn" data-action="ics">${I.cal} Tilføj til kalender</button><a class="btn btn-dark" href="#/mypage" data-action="close">Se mine events</a></div>`;
+}
+/* Møde 25/11: Bekræftelse efter afmelding – som "Du er tilmeldt" */
+function dCancelled(ev){
+  const r=S.drawer.cres, wl=r.wl;
+  return `<div class="d-head"><span style="width:32px"></span><h2></h2><button class="icbtn dark" data-action="close" aria-label="Luk">${I.close}</button></div>
+  <div class="d-body"><div class="center"><div class="success-ic neutral">${I.check}</div>
+    <h2 style="font-size:34px;margin-bottom:8px">${wl?'Du har forladt ventelisten':'Du er afmeldt'}</h2>
+    <p class="muted" style="margin:0 0 22px">${wl?'Du får ikke længere besked, hvis der bliver en plads ledig.':`Vi har sendt en bekræftelse til <b style="color:var(--b700)">${USER.email}</b>`}</p></div>
+    <div class="summary">
+      <div class="row"><span>Event</span><b style="text-align:right">${esc(ev.title)}</b></div>
+      <div class="row"><span>Hvornår</span><b>${esc(r.slot||ev.date)}</b></div>
+      ${wl?'':`<div class="row"><span>Billetter</span><b>${r.tickets}</b></div>`}
+      ${r.paid?`<div class="row tot"><span>Refusion</span><span>${r.refunded?kr(r.refunded):'Refunderes ikke'}</span></div>`:''}
+      <div class="row"><span>Reference</span><b>${r.ref}</b></div>
+    </div>
+    ${r.paid?`<p class="small muted center" style="margin-top:14px">${r.refunded?'Beløbet sendes tilbage til dit betalingskort inden for 3–5 hverdage.':`Du afmeldte dig efter fristen for refusion (${ev.refundBy}).`}</p>`:''}
+    ${wl?'':`<p class="small muted center" style="margin-top:8px">Du kan se dine afmeldinger under "Afmeldte" i MyMagasin.</p>`}
+    <div class="annot"><b>Møde 25/11:</b> Kunden får en tydelig bekræftelse på afmeldingen (+ mail). Afmeldingen gemmes i MyMagasin → Afmeldte som en log – også hvis kunden tilmelder sig igen (ny reference).</div></div>
+  <div class="d-foot"><button class="btn" data-action="close">Luk</button><a class="btn btn-dark" href="#/mypage" data-action="mycancelled">Se mine events</a></div>`;
+}
+
+/* ======================= Log ind / Opret profil (som magasin.dk) =======================
+   Gæst trykker "Log ind" → login-panelet. "Bliv Goodie-medlem"/"Tilmeld dig Magasin Goodie" → oprettelses-panelet.
+   Åbnes de fra et event, vender kunden tilbage til eventet bagefter (og fortsætter evt. tilmeldingen). */
+function openAuth(view){
+  const d=S.drawer;
+  if(d&&d.type!=='filter'&&d.type!=='auth'&&d.view!=='login'&&d.view!=='signup'){ d.auth={back:d.view,ask:d.loginAsk}; d.loginAsk=null; d.view=view; }
+  else if(d&&(d.view==='login'||d.view==='signup')){ d.prevAuth=d.view; d.view=view; }
+  else { S.drawer={type:'auth',view,auth:{},_openedAt:Date.now()}; document.body.classList.add('open'); }
+  if(!(d&&(d.prevAuth))) S.drawer.prevAuth=null;
+  S.drawer.af={email:USER.email,pw:'prototype',err:false,show:false,terms:false};
+  renderDrawer();
+}
+const authHead=t=>`<div class="d-head"><button class="icbtn" data-action="authback" aria-label="Tilbage">${I.back}</button><h2>${t}</h2><button class="icbtn dark" data-action="close" aria-label="Luk">${I.close}</button></div>`;
+function afIn(k,label,type='text',opts={}){
+  const f=S.drawer.af, err=f.err&&opts.req&&!f[k];
+  return `<div class="field ${err?'err':''} ${opts.pw?'has-eye':''}"><label>${label}</label><input type="${opts.pw&&!f.show?'password':type}" data-af="${k}" value="${esc(f[k]||'')}" autocomplete="off">${opts.pw?`<button class="af-eye" data-action="afeye" aria-label="Vis adgangskode">${I.eye}</button>`:''}</div>`;
+}
+function dLogin(){
+  const f=S.drawer.af, err=f.err&&(!f.email||!f.pw);
+  return `${authHead('Log ind')}
+  <div class="d-body">
+    <h3 class="sec-title">Goodie-medlem</h3>
+    <p class="small" style="margin:0 0 16px">Log ind som Goodie-medlem, så optjener du automatisk, når du shopper, og du får adgang til al den ekstra forkælelse, Magasin Goodie har at tilbyde.</p>
+    <div class="form-grid">${afIn('email','E-mail','email',{req:1})}${afIn('pw','Adgangskode','password',{req:1,pw:1})}</div>
+    ${err?`<div class="banner banner-danger" style="margin-top:12px">${I.close}<div><b>Udfyld de markerede felter</b>Vi skal bruge din e-mail og adgangskode.</div></div>`:''}
+    <div style="text-align:right;margin:12px 0 16px"><a class="link link-green" href="#" onclick="return false">Glemt adgangskode?</a></div>
+    <button class="btn btn-green btn-block" data-action="authlogin">Log ind ${I.arrow}</button>
+    <div class="goodie-box" style="margin-top:28px"><h4>Er du ikke Goodie-medlem endnu?</h4><p class="small" style="margin:0 0 14px">Det er gratis at blive medlem – og så får du adgang til eksklusive Goodie-events.</p><button class="btn btn-block" data-action="signup-goodie">Bliv Goodie-medlem ${I.arrow}</button></div>
+    <div class="annot"><b>Prototype:</b> Login fra magasin.dk i samme opbygning som de øvrige sidepaneler (header med tilbage/luk, felter som i tilmeldingen; "Log ind" ligger under felterne som på magasin.dk). Felterne er forudfyldt med en testbruger. Åbnes det fra et event, vender kunden tilbage til eventet efter login.</div>
+  </div>`;
+}
+function dSignup(){
+  const f=S.drawer.af;
+  return `${authHead('Bliv Goodie-medlem')}
+  <div class="d-body">
+    <h3 class="sec-title">Tilmeld Magasin Goodie</h3>
+    <p class="small" style="margin:0 0 16px">Det er gratis at blive medlem. Læs mere om alle fordelene <a class="link link-green" href="#" onclick="return false" style="font-size:inherit">her</a>.</p>
+    <div class="form-grid">
+      <div class="field-row" style="grid-template-columns:1fr 1fr">${afIn('first','Fornavn')}${afIn('last','Efternavn')}</div>
+      ${afIn('semail','E-mail','email')}
+      ${afIn('spw','Adgangskode','password',{pw:1})}${afIn('spw2','Gentag adgangskode','password',{pw:1})}
+      <div class="field-row" style="grid-template-columns:1fr 1fr"><div class="field"><label>Køn</label><select data-af="gender"><option value="">Vælg</option><option>Kvinde</option><option>Mand</option><option>Andet</option><option>Ønsker ikke at oplyse</option></select></div>${afIn('dob','Fødselsdato')}</div>
+      <div class="field-row"><div class="field"><label>Landekode</label><select><option>+45</option><option>+46</option><option>+47</option><option>+49</option><option>+44</option></select></div>${afIn('mobile','Mobilnummer','tel')}</div>
+    </div>
+    <div class="divider"></div>
+    <label class="check"><input type="checkbox" data-af-c="terms" ${f.terms?'checked':''}> <span>Jeg accepterer <a href="#" onclick="return false">vilkår for Magasin Goodie</a>.</span></label>
+    <label class="check" style="margin-top:12px"><input type="checkbox"> <span class="small">Jeg samtykker til at modtage målrettede henvendelser via e-mail, push-beskeder i tilknyttede apps, sociale medier og sms fra Magasin du Nord ("Magasin") med nyheder, tilbud, kampagner og konkurrencer, der vedrører de produkter, events og services, som Magasin udbyder. <a href="#" onclick="return false">Læs mere</a></span></label>
+    ${f.err&&!f.terms?`<div class="banner banner-danger" style="margin-top:14px">${I.close}<div><b>Accepter vilkårene</b>Du skal acceptere vilkårene for Magasin Goodie for at oprette en profil.</div></div>`:''}
+    <div class="captcha-mock"><span class="cb"></span><span>Jeg er ikke en robot</span><span class="captcha-logo">reCAPTCHA</span></div>
+    <button class="btn btn-green btn-block" data-action="authsignup" style="margin-top:20px">Opret profil ${I.arrow}</button>
+    <div class="annot"><b>Prototype:</b> Oprettelse fra magasin.dk i samme opbygning som de øvrige sidepaneler. Felter, samtykke og reCAPTCHA vises kun som layout – i prototypen kræves kun accept af vilkår, derefter er kunden logget ind og vender tilbage til eventet.</div>
+  </div>`;
+}
+function authDone(msg){
+  const d=S.drawer, a=d.auth&&d.auth.ask;
+  S.loggedIn=true; save();
+  if(d.type==='auth'){ closeDrawer(); toast(msg); return; }
+  const ev=EV(d.id); d.view=d.auth.back||'detail'; d.edit=false; d.af=null;
+  if(a&&a.kind==='remind') S.reminders[d.id]=true;
+  /* Efter login: fortsæt direkte i tilmeldingen, hvis kunden opfylder kravene (ellers vises niveau-boksen) */
+  if(a&&a.kind==='book'&&lvlOk(ev)&&!active(bk(ev.id))){d.view='flow';d.step=0;d.mode=a.mode;}
+  save(); render(); renderDrawer();
+  toast(a&&a.kind==='remind'?'Du er logget ind – du får en påmindelse dagen før':msg);
+}
+
+/* ======================= Flow logic ======================= */
+function ref(p='EV'){return p+'-'+Math.floor(48000+Math.random()*1900)}
+function fnext(){
+  const d=S.drawer, ev=EV(d.id), steps=stepsFor(ev), cur=steps[d.step];
+  if((cur==='info'||cur==='waitlist')&&(!S.loggedIn||d.edit)){
+    const f=d.form; if(!f.first||!f.last||!/@/.test(f.email)){d.error=true;renderDrawer();return}
+  }
+  d.error=false;
+  const slot=d.slot?`${ev.slots[d.slot[0]].d} ${ev.slots[d.slot[0]].n} · ${ev.slots[d.slot[0]].t[d.slot[1]].t}`:undefined;
+  if(cur==='waitlist'){B()[ev.id]={status:'waitlist',ref:ref('WL')};d.step++;save();renderDrawer();render();return}
+  if(cur==='info'&&ev.price){d.slotLabel=slot;d.slotIdx=d.slot;d.payError=false;d.step++;renderDrawer();return}
+  if(cur==='info'){B()[ev.id]={status:'confirmed',tickets:d.tickets,slot,si:d.slot||undefined,ref:ref()};d.step++;save();renderDrawer();render();toast('Du er tilmeldt');return}
+  d.step++;renderDrawer();
+}
+function doPay(){
+  const d=S.drawer, ev=EV(d.id);
+  const btn=document.querySelector('[data-action="dopay"]');btn.disabled=true;btn.textContent='Behandler betaling …';
+  setTimeout(()=>{
+    if(S.payFail){d.payError=true;renderDrawer();document.querySelector('#drawer .d-body').scrollTop=0;return}
+    B()[ev.id]={status:'confirmed',tickets:d.tickets,slot:d.slotLabel,si:d.slotIdx||undefined,ref:ref(),paid:ev.price*d.tickets};d.payError=false;d.step++;save();renderDrawer();render();toast('Betaling gennemført – du er tilmeldt');
+  },900);
+}
+
+/* ======================= Shell render ======================= */
+function route(){return (location.hash||'#/events').slice(2).split('?')[0]||'events'}
+function render(){
+  const r=route();
+  document.getElementById('app').innerHTML = r.startsWith('event/')?pageEvent(): r==='mypage'?pageMy(): r==='overview'?pageOverview(): r==='mails'?pageMails(): r==='jul'?pageJul(): r==='pdp'?pagePdp(): pageEvents();
+  document.getElementById('navEvents').classList.toggle('active',r==='events');
+  document.getElementById('hdrActions').innerHTML = (S.loggedIn
+    ?`<a class="hdr-btn" href="#/mypage" title="MyMagasin">${I.user}<span>Hej ${USER.first}</span></a>`
+    :`<button class="hdr-btn" data-action="login" title="Log ind">${I.user}</button>`)+`<span class="hdr-btn">${I.heart}</span><span class="hdr-btn">${I.bag}</span>`;
+  document.body.classList.toggle('notes',S.notes);
+  renderProto();
+  /* Deep link: #/events?event=ID åbner eventoversigten med eventets sidepanel foldet ud */
+  const pe=evParam(); if(pe&&!S.drawer&&EV(pe)) openDrawer(pe);
+}
+function renderProto(){
+  const r=route();
+  document.getElementById('protoPanel').innerHTML=`
+    <h5>Sider</h5><div class="plinks">
+      <a href="#/events">1 · Eventoversigt ${r==='events'?'●':''}</a>
+      <a href="#/jul">2 · Indholdsside med eventmodul ${r==='jul'?'●':''}</a>
+      <a href="#/overview">3 · MyMagasin ${r==='overview'||r==='mypage'?'●':''}</a>
+      <a href="#/pdp">4 · PDP med event under buy box ${r==='pdp'?'●':''}</a>
+      <a href="#/mails">5 · Trigger-mails ${r==='mails'?'●':''}</a>
+      <a href="${evHash(6)}">6 · Delt event-link ${r.startsWith('event/')||(r==='events'&&evParam())?'●':''}</a></div>
+    <h5>Delingslink åbner</h5><div class="seg"><button class="${shareMode()==='drawer'?'on':''}" data-action="sharemode" data-v="drawer">Oversigt + sidepanel</button><button class="${shareMode()==='page'?'on':''}" data-action="sharemode" data-v="page">Landingsside</button></div>
+    <h5>Kunde</h5><div class="seg"><button class="${S.loggedIn?'':'on'}" data-action="as" data-v="0">Gæst</button><button class="${S.loggedIn?'on':''}" data-action="as" data-v="1">Goodie-medlem</button></div>
+    ${S.loggedIn?`<h5>Goodie-niveau</h5><div class="seg">${[1,2,3].map(n=>`<button class="${S.stars===n?'on':''}" data-action="stars" data-v="${n}">${n} ${n>1?'stjerner':'stjerne'}</button>`).join('')}</div>`:''}
+    <h5>Scenarier</h5>
+    <label class="sw">Simulér betalingsfejl <input type="checkbox" data-action="payfail" ${S.payFail?'checked':''}></label>
+    <label class="sw">Påmindelse på events uden tilmelding (tillæg) <input type="checkbox" data-action="remindsc" ${S.remind?'checked':''}></label>
+    <label class="sw">Vis designnoter <input type="checkbox" data-action="notes" ${S.notes?'checked':''}></label>
+    <button class="btn btn-sm btn-block" style="margin-top:10px" data-action="resetall">Nulstil prototype</button>
+`;
+}
+
+/* ======================= Events ======================= */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]'); if(!t) return;
+  const a=t.dataset.action, v=t.dataset.v, id=t.dataset.id;
+  NAV.dir=BACK_ACTIONS.has(a)||(a==='editbk'&&S.drawer&&S.drawer.view==='cancel')?'back':'fwd';
+  const d=S.drawer;
+  switch(a){
+    case 'open': openDrawer(id); break;
+    case 'close': closeDrawer(); break;
+    case 'flow': {let dd=d; if(!dd){openDrawer(id||lpId()); dd=S.drawer;}   /* fra landingssiden: åbn sidepanelet */
+      if(!S.loggedIn&&EV(dd.id).member){dd.loginAsk={kind:'book',mode:t.dataset.mode||'book'};renderDrawer();break}
+      dd.view='flow'; dd.step=0; dd.mode=t.dataset.mode||'book'; renderDrawer(); break;}
+    case 'share': openShare(id); break;
+    case 'sharemode': S.shareMode=v; save(); renderProto(); if(S.drawer&&S.drawer.view==='detail') renderDrawer(); toast(v==='page'?'Delingslink åbner nu eventets landingsside':'Delingslink åbner nu eventoversigten med sidepanelet'); break;
+    case 'shareclose': closeShare(); break;
+    case 'sharecopy': {const u=evUrl(id); (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast('Linket er kopieret'),()=>toast('Linket er kopieret')); closeShare(); break;}
+    case 'sharevia': closeShare(); toast(`Åbner ${v} med link til eventet (prototype)`); break;
+    case 'fback': if(d.step===0){d.view='detail'} else d.step--; renderDrawer(); break;
+    case 'fnext': fnext(); break;
+    case 'day': d.day=+v; renderDrawer(); break;
+    case 'slot': d.slot=[d.day,+v]; d.tickets=Math.min(d.tickets,bookMax(EV(d.id),d)); renderDrawer(); break;
+    case 'nextfree': {const [i,j]=v.split(',').map(Number); d.day=i; renderDrawer();   // hop til tiden – vælg den ikke
+      const row=document.querySelectorAll('#drawer .trow')[j]; if(row){row.scrollIntoView({block:'center',behavior:'smooth'}); row.classList.add('flash'); setTimeout(()=>row.classList.remove('flash'),1600);} break;}
+    case 'qty': d.tickets=Math.max(1,Math.min(bookMax(EV(d.id),d),d.tickets+ +v)); renderDrawer(); break;
+    case 'edit': d.edit=true; Object.assign(d.form,{first:USER.first,last:USER.last,email:USER.email,phone:USER.phone}); renderDrawer(); break;
+    case 'pm': d.pay=v; renderDrawer(); break;
+    case 'dopay': doPay(); break;
+    case 'pay': if(!d||d.id!==+id) openDrawer(id,'flow',{goto:'betaling'}); else {d.view='flow';d.step=stepsFor(EV(id)).indexOf('betaling');renderDrawer()} break;
+    case 'cancel': if(!d||d.id!==+id) openDrawer(id); S.drawer.view='cancel'; S.drawer.noRefund=false; renderDrawer(); break;
+    case 'editbk': openEdit(id||d.id); break;
+    case 'eday': d.ed.day=+v; renderDrawer(); break;
+    case 'eslot': {d.ed.si=[d.ed.day,+v]; const ev=EV(d.id); d.ed.tickets=Math.min(d.ed.tickets,edMax(ev,bk(d.id),d.ed.si)); renderDrawer(); break;}
+    case 'eqty': d.ed.tickets=Math.max(1,d.ed.tickets+ +v); renderDrawer(); break;
+    case 'ednext': d.ed.step=1; d.terms=false; renderDrawer(); break;
+    case 'edback': d.ed.step=0; renderDrawer(); break;
+    case 'edsave': edSave(); break;
+    case 'mycancelled': S.myTab='cancelled'; save(); closeDrawer(); break;
+    case 'loginno': d.loginAsk=null; renderDrawer(); break;
+    case 'logout': S.loggedIn=false; save(); location.hash='#/events'; render(); toast('Du er logget ud'); break;
+    case 'toDetail': d.view='detail'; renderDrawer(); break;
+    case 'doCancel': {const ev=EV(d.id), b=bk(d.id); const wl=b.status==='waitlist';
+      if(wl){ d.cres={wl:true,ref:b.ref}; delete B()[d.id]; save(); d.view='cancelled'; renderDrawer(); render(); break; }
+      const amt=ev.price?(b.paid||ev.price*b.tickets):0, refunded=amt&&!ev.refundPassed?amt:0;
+      if(ev.slots&&b.si) ev.slots[b.si[0]].t[b.si[1]].left+=b.tickets; else if(ev.spots!=null&&!ev.noWaitlist) ev.spots+=b.tickets;
+      /* Afmeldingen logges (MyMagasin → Afmeldte) – bookingen fjernes, så eventet kan bookes igen med ny reference */
+      const entry={id:ev.id,status:'cancelled',tickets:b.tickets,slot:b.slot,ref:b.ref,paid:amt||undefined,refunded,cancelledAt:'i dag'};
+      S.cancelLog.push(entry); delete B()[d.id]; d.cres=entry; save(); d.view='cancelled'; renderDrawer(); render(); break;}
+    case 'stars': S.stars=+v; save(); render(); if(d) renderDrawer(); break;
+    case 'ics': toast(v==='route'?'Åbner Google Maps (prototype)':'Kalenderfil (.ics) downloadet (prototype)'); break;
+    case 'login': openAuth('login'); break;
+    case 'authback': d.af.err=false;
+      if(d.view==='signup'&&d.prevAuth==='login'){ d.view='login'; d.prevAuth=null; renderDrawer(); break; }
+      if(d.type==='auth'){ closeDrawer(); break; }
+      d.view=d.auth.back||'detail'; d.loginAsk=null; d.af=null; renderDrawer(); break;
+    case 'afeye': d.af.show=!d.af.show; renderDrawer(); break;
+    case 'authlogin': if(!d.af.email||!d.af.pw){d.af.err=true;renderDrawer();break} authDone('Du er logget ind som '+USER.first); break;
+    case 'authsignup': if(!d.af.terms){d.af.err=true;renderDrawer();break} authDone('Velkommen til Magasin Goodie, '+(d.af.first||USER.first)); break;
+    case 'signup-goodie': if(v==='stars'){toast('Fører til "Sådan optjener du stjerner" (eksisterende side)');break} openAuth('signup'); break;
+    case 'mytab': S.myTab=v; save(); render(); break;
+    case 'reset-f': S[t.dataset.s||'f']=emptyF(); save(); render(); break;
+    case 'fmine': S.f.mine=!S.f.mine; save(); render(); break;
+    case 'frm': {const F=S[t.dataset.s||'f']; if(t.dataset.k==='mine') F.mine=false; else F[t.dataset.k]=F[t.dataset.k].filter(x=>x!==v); save(); render(); break;}
+    case 'fopen': openFilter(v,t.dataset.s||'f'); break;
+    case 'fview': d.view=v; renderDrawer(); break;
+    case 'fback2': d.view='root'; renderDrawer(); break;
+    case 'ftoggle': {const k=t.dataset.k; if(k==='mine') d.draft.mine=!d.draft.mine; else { const a=d.draft[k]; d.draft[k]=a.includes(v)?a.filter(x=>x!==v):[...a,v]; } renderDrawer(); break;}
+    case 'fclear': if(t.dataset.k==='all') d.draft=emptyF(); else d.draft[t.dataset.k]=[]; renderDrawer(); break;
+    case 'fapply': S[d.scope||'f']=d.draft; save(); closeDrawer(); break;
+    case 'mail': S.mail=v; save(); render(); break;
+    case 'mod': S.mod=v; save(); render(); break;
+    case 'pdpmatch': S.pdpMatch=v; save(); render(); break;
+    case 'cart': toast('Lagt i kurven (prototype)'); break;
+    case 'scroll': {const tr=document.getElementById('track'); tr.scrollBy({left:(+v)*tr.clientWidth*.75}); break;}
+    case 'proto': document.getElementById('proto').classList.toggle('open'); break;
+    case 'as': S.loggedIn=v==='1'; save(); render(); if(d) renderDrawer(); break;
+    case 'resetall': try{localStorage.removeItem(KEY)}catch(e){} S=fresh(); document.body.classList.remove('open'); render(); toast('Prototypen er nulstillet'); break;
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.action==='payfail'){S.payFail=t.checked;save()}
+  if(t.dataset.action==='notes'){S.notes=t.checked;save();render()}
+  if(t.dataset.action==='remindsc'){S.remind=t.checked;save();render();if(S.drawer)renderDrawer()}
+  if(t.dataset.action==='remindask'){t.checked=false; if(!S.drawer) openDrawer(lpId()); S.drawer.loginAsk={kind:'remind'};renderDrawer()}
+  if(t.dataset.action==='remind'){S.reminders[t.dataset.id]=t.checked;save();toast(t.checked?'Du får en påmindelse dagen før':'Påmindelsen er slået fra')}
+  if(t.dataset.c&&S.drawer){S.drawer[t.dataset.c]=t.checked; if(t.dataset.c==='terms'){document.querySelectorAll('[data-action="dopay"],[data-action="edsave"]').forEach(pb=>pb.disabled=!t.checked)}
+    if(t.dataset.c==='noRefund'){const cb=document.querySelector('[data-action="doCancel"]'); if(cb) cb.disabled=!t.checked}}
+  if(t.dataset.f&&S.drawer){S.drawer.form[t.dataset.f]=t.value}
+  if(t.dataset.af&&S.drawer&&S.drawer.af){S.drawer.af[t.dataset.af]=t.value}
+  if(t.dataset.afC&&S.drawer&&S.drawer.af){S.drawer.af[t.dataset.afC]=t.checked}
+});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.f&&S.drawer)S.drawer.form[t.dataset.f]=t.value;
+  if(t.dataset.af&&S.drawer&&S.drawer.af){const f=S.drawer.af; f[t.dataset.af]=t.value;}});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return; if(document.getElementById('modal').classList.contains('on')||(S.drawer&&S.drawer.shareAsk)){closeShare();return} if(S.drawer)closeDrawer()});
+window.addEventListener('hashchange',()=>{
+  if(evParam()){ S.drawer=null; render(); return; }   /* delt link: vis oversigten og åbn sidepanelet */
+  if(S.drawer)closeDrawer();else render();window.scrollTo(0,0)});
+render();
+/* Header-adfærd som www.magasin.dk */
+(function(){
+  const hdr=document.querySelector('.hdr'), root=document.documentElement;
+  let lastY=window.scrollY;
+  const setH=()=>root.style.setProperty('--header-height',hdr.offsetHeight+'px');
+  setH(); window.addEventListener('resize',setH);
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY, d=y-lastY;
+    if(Math.abs(d)<4) return;
+    root.dataset.scrolldir=d>0?'down':'up';
+    document.body.classList.toggle('is-scrolled-header',y>hdr.offsetHeight);
+    lastY=y;
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
